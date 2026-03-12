@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - SIM Penugasan Kuliah</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #e11d48;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+            color: #4b5563;
+        }
+        .btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📶❌</div>
+        <h1>Anda Sedang Offline</h1>
+        <p>Halaman ini tidak dapat dimuat karena tidak ada koneksi internet. Beberapa fitur mungkin tetap tersedia secara offline jika Anda sudah pernah membukanya.</p>
+        <button class="btn" onclick="window.location.reload()">Coba Lagi</button>
+        <p style="margin-top: 20px; font-size: 14px;">
+            <a href="/" style="color: #2563eb; text-decoration: none;">Kembali ke Beranda</a>
+        </p>
+    </div>
+    
+    <script>
+        window.addEventListener('online', function() {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
