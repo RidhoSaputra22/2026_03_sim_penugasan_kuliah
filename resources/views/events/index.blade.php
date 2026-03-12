@@ -12,6 +12,7 @@
                 <th>Mulai</th>
                 <th>Selesai</th>
                 <th>Lokasi</th>
+                <th>Warna</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -23,6 +24,7 @@
                 <td>{{ $event->start }}</td>
                 <td>{{ $event->end }}</td>
                 <td>{{ $event->location }}</td>
+                <td><span style="display:inline-block;width:24px;height:24px;background:{{ $event->color ?? '#2196f3' }};border-radius:4px;"></span></td>
                 <td>
                     <a href="{{ route('events.edit', $event) }}" class="btn btn-sm btn-warning">Edit</a>
                     <form action="{{ route('events.destroy', $event) }}" method="POST" style="display:inline-block">

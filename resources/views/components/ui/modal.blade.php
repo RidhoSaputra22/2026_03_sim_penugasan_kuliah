@@ -1,13 +1,3 @@
-{{--
-    Reusable Modal Component
-
-    @param string $id - Modal ID for triggering
-    @param string $title - Modal title
-    @param string $size - Modal size: sm, md, lg
-    @param bool $closeButton - Show close button
---}}
-
-
 @props([
     'id',
     'title' => null,
@@ -17,57 +7,97 @@
 ])
 
 @php
-$sizeClass = match($size) {
-    'sm' => 'max-w-sm',
-    'md' => 'max-w-lg',
-    'lg' => 'max-w-3xl',
-    'xl' => 'max-w-5xl',
-    default => 'max-w-lg',
-};
-$modalPositionClass = $centered ? 'modal-middle' : 'modal-bottom sm:modal-middle';
-@endphp
+    $sizeClass = match($size) {
+        'sm' => 'max-w-sm',
+        'md' => 'max-w-lg',
+        'lg' => 'max-w-3xl',
+        'xl' => 'max-w-5xl',
+        default => 'max-w-lg',
+    };
 
-@php
-    // Allow dynamic title via slot if provided
-    $hasTitleSlot = isset($title) && $title === null && $attributes->has('title');
-@endphp
+    $modalPositionClass = $centered ? 'modal-middle' : 'modal-bottom sm:modal-middle';
 
-@php
-$sizeClass = match($size) {
-'sm' => 'max-w-sm',
-'md' => 'max-w-lg',
-'lg' => 'max-w-3xl',
-'xl' => 'max-w-5xl',
-default => 'max-w-lg',
-};
+    $modalActionsPosition = isset($modalActions)
+        ? trim($modalActions->attributes->get('position', 'top-right') ?? 'top-right')
+        : null;
+
+    $topPositions = ['top-left', 'top-center', 'top-right'];
+    $bottomPositions = ['bottom-left', 'bottom-center', 'bottom-right'];
+
+    $hasTopActions = isset($modalActions) && in_array($modalActionsPosition, $topPositions, true);
+    $hasBottomActions = isset($modalActions) && in_array($modalActionsPosition, $bottomPositions, true);
+
+    $hasHeader = isset($titleSlot) || $title || $closeButton || $hasTopActions;
 @endphp
 
 <dialog id="{{ $id }}" class="modal {{ $modalPositionClass }}">
     <div class="modal-box {{ $sizeClass }}">
-        @if($title || $closeButton || (isset($title) && trim($title) === '' && isset($titleSlot)))
-        <div class="flex justify-between items-center mb-4">
-            @if(isset($titleSlot))
-                {{ $titleSlot }}
-            @elseif($title)
-                <h3 class="font-bold text-lg">{{ $title }}</h3>
-            @endif
-            @if($closeButton)
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost">✕</button>
-            </form>
-            @endif
-        </div>
+        @if($hasHeader)
+            <div class="mb-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1 text-left">
+                        @if(isset($titleSlot))
+                            {{ $titleSlot }}
+                        @elseif($title)
+                            <h3 class="font-bold text-lg">{{ $title }}</h3>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                        @if($hasTopActions && $modalActionsPosition === 'top-right')
+                            {{ $modalActions }}
+                        @endif
+
+                        @if($closeButton)
+                            <form method="dialog">
+                                <button class="btn btn-sm btn-circle btn-ghost" type="submit">✕</button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+
+                @if($hasTopActions && $modalActionsPosition === 'top-left')
+                    <div class="mt-3 flex justify-start">
+                        {{ $modalActions }}
+                    </div>
+                @endif
+
+                @if($hasTopActions && $modalActionsPosition === 'top-center')
+                    <div class="mt-3 flex justify-center">
+                        {{ $modalActions }}
+                    </div>
+                @endif
+            </div>
         @endif
 
         {{ $slot }}
 
+        @if($hasBottomActions)
+            <div class="mt-4">
+                @if($modalActionsPosition === 'bottom-left')
+                    <div class="flex justify-start">
+                        {{ $modalActions }}
+                    </div>
+                @elseif($modalActionsPosition === 'bottom-center')
+                    <div class="flex justify-center">
+                        {{ $modalActions }}
+                    </div>
+                @elseif($modalActionsPosition === 'bottom-right')
+                    <div class="flex justify-end">
+                        {{ $modalActions }}
+                    </div>
+                @endif
+            </div>
+        @endif
+
         @if(isset($actions))
-        <div class="modal-action">
-            {{ $actions }}
-        </div>
+            <div class="modal-action">
+                {{ $actions }}
+            </div>
         @endif
     </div>
+
     <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        <button type="submit">close</button>
     </form>
 </dialog>

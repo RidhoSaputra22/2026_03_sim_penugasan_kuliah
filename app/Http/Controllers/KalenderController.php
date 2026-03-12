@@ -61,6 +61,7 @@ class KalenderController extends Controller
                 'location'    => $e->location,
                 'eventId'     => $e->id,
             ],
+            'color' => $e->color ?? '#2196f3',
         ]);
 
         $events = $jadwalEvents->merge($deadlineEvents)->merge($customEvents)->values();

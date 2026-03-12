@@ -12,7 +12,7 @@
 --}}
 
 @props([
-'name',
+'name' => 'null',
 'label' => null,
 'type' => 'text',
 'placeholder' => '',
@@ -69,7 +69,7 @@ $inputId = $name . '_' . uniqid();
     @elseif ($type === 'file')
         <div class="flex items-center gap-2">
             <input type="{{ $type }}" id="{{ $inputId }}" name="{{ $name }}" placeholder="{{ $placeholder }}"
-                value="{{ old($name, $value) }}" 
+                value="{{ old($name, $value) }}"
                 {{ $attributes->merge(['class' => 'file-input w-full' . ($error ? ' input-error' : '')]) }}
                 {{ $required ? 'required' : '' }} />
             @if($type === 'file' && $value)
@@ -79,10 +79,10 @@ $inputId = $name . '_' . uniqid();
     @else
          <div class="flex items-center gap-2">
             <input type="{{ $type }}" id="{{ $inputId }}" name="{{ $name }}" placeholder="{{ $placeholder }}"
-                value="{{ old($name, $value) }}" 
+                value="{{ old($name, $value) }}"
                 {{ $attributes->merge(['class' => 'input input-bordered w-full' . ($error ? ' input-error' : '')]) }}
                 {{ $required ? 'required' : '' }} />
-            
+
         </div>
     @endif
 

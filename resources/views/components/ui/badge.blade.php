@@ -7,7 +7,7 @@
 --}}
 
 @props([
-    'type' => 'primary',
+    'type' => '',
     'size' => 'md',
     'outline' => false,
 ])
@@ -23,7 +23,7 @@
         'warning' => 'badge-warning',
         'error' => 'badge-error',
         'neutral' => 'badge-neutral',
-        default => 'badge-primary',
+        default => '',
     };
 
     $sizeClass = match($size) {

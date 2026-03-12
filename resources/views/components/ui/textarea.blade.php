@@ -11,7 +11,7 @@
 --}}
 
 @props([
-'name',
+'name' => 'null',
 'label' => null,
 'placeholder' => '',
 'value' => '',

@@ -31,14 +31,16 @@ class EventController extends Controller
             'start'       => 'required|date',
             'end'         => 'nullable|date|after_or_equal:start',
             'location'    => 'nullable|string|max:255',
+            'color' => 'nullable|in:primary,secondary,accent,info,success,warning,error,neutral',
+
         ]);
         $validated['user_id'] = auth()->id();
+        // dd($validated);
         $event = Event::create($validated);
 
         if ($request->wantsJson()) {
             return response()->json($event, 201);
         }
-
         return redirect()->route('events.index');
     }
 
@@ -64,6 +66,8 @@ class EventController extends Controller
             'start'       => 'required|date',
             'end'         => 'nullable|date|after_or_equal:start',
             'location'    => 'nullable|string|max:255',
+            'color' => 'nullable|in:primary,secondary,accent,info,success,warning,error,neutral',
+
         ]);
         $event->update($validated);
 

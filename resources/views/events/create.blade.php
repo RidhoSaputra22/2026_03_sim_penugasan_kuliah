@@ -25,6 +25,10 @@
             <label for="location" class="form-label">Lokasi</label>
             <input type="text" name="location" class="form-control">
         </div>
+        <div class="mb-3">
+            <label for="color" class="form-label">Warna</label>
+            <input type="color" name="color" class="form-control" value="#2196f3">
+        </div>
         <button type="submit" class="btn btn-success">Simpan</button>
     </form>
 </div>

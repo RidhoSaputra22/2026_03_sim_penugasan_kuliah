@@ -65,6 +65,31 @@
                     </div>
                 </div>
             </x-ui.card>
+
+            {{-- Event Mendatang --}}
+            <x-ui.card title="Event Mendatang">
+                <div class="space-y-2">
+                    <template x-for="e in upcomingEvents" :key="e.title + e.start">
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-base-200/50">
+                            <div class="w-2 h-2 rounded-full" :class="'bg-' + (e.color ?? 'info') + ' shrink-0'"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs sm:text-sm font-medium truncate" x-text="e.title"></div>
+                                <div class="text-[10px] sm:text-xs text-base-content/60">
+                                    <span x-text="formatDate(e.start)"></span>
+                                    <template x-if="e.extendedProps && e.extendedProps.location">
+                                        <span> • <span x-text="e.extendedProps.location"></span></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="upcomingEvents.length === 0"
+                        class="text-center py-4 text-base-content/50 text-xs sm:text-sm">
+                        Tidak ada event mendatang
+                    </div>
+                </div>
+            </x-ui.card>
+
         </div>
     </div>
 </x-layouts.app>
