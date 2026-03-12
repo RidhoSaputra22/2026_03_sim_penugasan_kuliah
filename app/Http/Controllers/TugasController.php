@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MataKuliah;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use \App\Enums\Status;
 
 class TugasController extends Controller
@@ -29,7 +30,42 @@ class TugasController extends Controller
         $tugas = $query->orderBy('deadline', 'asc')->paginate(15);
         $mataKuliah = MataKuliah::orderBy('nama')->get();
 
-        return view('tugas.index', compact('tugas', 'mataKuliah'));
+        // Stats summary
+        $totalTugas = Tugas::where('user_id', $user->id)->count();
+        $tugasSelesai = Tugas::where('user_id', $user->id)->where('status', Status::SELESAI)->count();
+        $tugasProgress = Tugas::where('user_id', $user->id)->where('status', Status::PROGRESS)->count();
+        $tugasBelum = Tugas::where('user_id', $user->id)->where('status', Status::BELUM)->count();
+        $tugasTerlambat = Tugas::where('user_id', $user->id)
+            ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+            ->where('deadline', '<', now())
+            ->count();
+        $avgProgress = Tugas::where('user_id', $user->id)->avg('progress') ?? 0;
+
+        // Tugas per prioritas
+        $tugasPerPrioritas = Tugas::where('user_id', $user->id)
+            ->select('prioritas', DB::raw('count(*) as total'))
+            ->groupBy('prioritas')
+            ->pluck('total', 'prioritas')
+            ->toArray();
+
+        // Deadline minggu ini
+        $deadlineMingguIni = Tugas::where('user_id', $user->id)
+            ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+            ->whereBetween('deadline', [now()->startOfWeek(), now()->endOfWeek()])
+            ->count();
+
+        return view('tugas.index', compact(
+            'tugas',
+            'mataKuliah',
+            'totalTugas',
+            'tugasSelesai',
+            'tugasProgress',
+            'tugasBelum',
+            'tugasTerlambat',
+            'avgProgress',
+            'tugasPerPrioritas',
+            'deadlineMingguIni'
+        ));
     }
 
     public function create()

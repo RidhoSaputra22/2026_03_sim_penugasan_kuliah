@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MataKuliah;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MataKuliahController extends Controller
 {
@@ -27,7 +28,36 @@ class MataKuliahController extends Controller
             ->orderBy('jam_mulai')
             ->paginate(15);
 
-        return view('mata-kuliah.index', compact('mataKuliah'));
+        // Stats for summary cards
+        $totalMataKuliah = MataKuliah::count();
+        $totalSks = MataKuliah::sum('sks') ?? 0;
+        $totalDosen = MataKuliah::distinct('dosen')->count('dosen');
+        $totalRuangan = MataKuliah::distinct('ruangan')->count('ruangan');
+
+        // Jadwal per hari
+        $jadwalPerHari = MataKuliah::select('hari', DB::raw('count(*) as total'))
+            ->groupBy('hari')
+            ->pluck('total', 'hari')
+            ->toArray();
+
+        // Total jam kuliah per minggu (in minutes, then convert)
+        $allMk = MataKuliah::all();
+        $totalJamPerMinggu = $allMk->sum(function ($mk) {
+            $mulai = \Carbon\Carbon::parse($mk->jam_mulai);
+            $selesai = \Carbon\Carbon::parse($mk->jam_selesai);
+            return $mulai->diffInMinutes($selesai);
+        });
+        $totalJamPerMinggu = round($totalJamPerMinggu / 60, 1);
+
+        return view('mata-kuliah.index', compact(
+            'mataKuliah',
+            'totalMataKuliah',
+            'totalSks',
+            'totalDosen',
+            'totalRuangan',
+            'jadwalPerHari',
+            'totalJamPerMinggu'
+        ));
     }
 
     public function create()

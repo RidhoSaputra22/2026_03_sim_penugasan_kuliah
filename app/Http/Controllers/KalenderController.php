@@ -10,8 +10,6 @@ use \App\Enums\Status;
 
 class KalenderController extends Controller
 {
-    // FullCalendar day-of-week: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-
     public function index()
     {
         $user = auth()->user();
@@ -29,8 +27,6 @@ class KalenderController extends Controller
                 'dosen'   => $mk->dosen,
             ],
         ]);
-
-        // dd($jadwalEvents);
 
         $deadlineEvents = Tugas::where('user_id', $user->id)
             ->whereIn('status', [Status::BELUM, Status::PROGRESS])
@@ -66,6 +62,20 @@ class KalenderController extends Controller
 
         $events = $jadwalEvents->merge($deadlineEvents)->merge($customEvents)->values();
 
-        return view('kalender.index', compact('events'));
+        // Sidebar stats
+        $totalMataKuliah = MataKuliah::count();
+        $totalTugasAktif = Tugas::where('user_id', $user->id)
+            ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+            ->count();
+        $totalEvents = Event::where('user_id', $user->id)->count();
+        $avgProgress = Tugas::where('user_id', $user->id)->avg('progress') ?? 0;
+
+        return view('kalender.index', compact(
+            'events',
+            'totalMataKuliah',
+            'totalTugasAktif',
+            'totalEvents',
+            'avgProgress'
+        ));
     }
 }
