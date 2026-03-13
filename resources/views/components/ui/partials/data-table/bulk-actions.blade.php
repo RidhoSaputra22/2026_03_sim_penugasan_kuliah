@@ -1,10 +1,10 @@
-{{-- Bulk Actions --}}
 @if ($selectable && $bulkActionRoute && $items->count() > 0)
     <form
         method="POST"
         action="{{ $bulkActionRoute }}"
         class="flex flex-wrap items-center gap-2"
         @submit.prevent="submitBulkAction($event)"
+        x-ref="bulkActionForm"
     >
         @csrf
 
@@ -43,4 +43,45 @@
             Reset Pilihan
         </button>
     </form>
+
+    {{-- Confirm Modal --}}
+    <dialog id="bulk-action-confirm-modal" class="modal" x-ref="bulkActionModal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Konfirmasi Bulk Action</h3>
+
+            <p class="py-3 text-sm text-base-content/70" x-text="confirmMessage"></p>
+
+            <div class="rounded-box bg-base-200 p-3 text-sm">
+                <div class="flex items-center justify-between">
+                    <span>Aksi</span>
+                    <span class="font-semibold" x-text="bulkActionLabel"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span>Jumlah data</span>
+                    <span class="font-semibold" x-text="selected.length"></span>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button type="button" class="btn btn-ghost" @click="closeBulkActionModal()">
+                        Batal
+                    </button>
+                </form>
+
+                <button
+                    type="button"
+                    class="btn"
+                    :class="bulkAction === 'delete' ? 'btn-error' : 'btn-primary'"
+                    @click="confirmBulkAction()"
+                >
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+
+        <form method="dialog" class="modal-backdrop">
+            <button @click="closeBulkActionModal()">close</button>
+        </form>
+    </dialog>
 @endif

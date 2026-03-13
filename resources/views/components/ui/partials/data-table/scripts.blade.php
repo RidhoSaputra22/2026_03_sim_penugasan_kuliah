@@ -8,6 +8,8 @@
                     bulkAction: '',
                     lastCheckedIndex: null,
                     isShiftPressed: false,
+                    pendingBulkSubmit: false,
+                    confirmMessage: '',
 
                     get isAllSelected() {
                         return this.rowIds.length > 0 && this.selected.length === this.rowIds.length;
@@ -15,6 +17,15 @@
 
                     get canSubmitBulk() {
                         return this.bulkAction !== '' && this.selected.length > 0;
+                    },
+
+                    get bulkActionLabel() {
+                        const labels = {
+                            delete: 'Hapus',
+                            set_senin: 'Set Senin',
+                        };
+
+                        return labels[this.bulkAction] ?? this.bulkAction;
                     },
 
                     toggleAll(event) {
@@ -61,6 +72,24 @@
                         this.lastCheckedIndex = currentIndex;
                     },
 
+                    openBulkActionModal() {
+                        if (!this.$refs.bulkActionModal) return;
+                        this.$refs.bulkActionModal.showModal();
+                    },
+
+                    closeBulkActionModal() {
+                        if (!this.$refs.bulkActionModal) return;
+                        this.$refs.bulkActionModal.close();
+                    },
+
+                    confirmBulkAction() {
+                        this.closeBulkActionModal();
+
+                        if (this.$refs.bulkActionForm) {
+                            this.$refs.bulkActionForm.submit();
+                        }
+                    },
+
                     submitBulkAction(event) {
                         if (!this.bulkAction) {
                             alert('Pilih bulk action terlebih dahulu.');
@@ -73,12 +102,14 @@
                         }
 
                         if (this.bulkAction === 'delete') {
-                            if (!confirm('Yakin ingin menghapus data terpilih?')) {
-                                return;
-                            }
+                            this.confirmMessage = `Yakin ingin menghapus ${this.selected.length} data terpilih? Tindakan ini tidak dapat dibatalkan.`;
+                        } else if (this.bulkAction === 'set_senin') {
+                            this.confirmMessage = `Yakin ingin mengubah ${this.selected.length} data terpilih menjadi hari Senin?`;
+                        } else {
+                            this.confirmMessage = `Yakin ingin menjalankan aksi "${this.bulkActionLabel}" pada ${this.selected.length} data terpilih?`;
                         }
 
-                        event.target.submit();
+                        this.openBulkActionModal();
                     }
                 };
             }

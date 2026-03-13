@@ -183,7 +183,6 @@ class MataKuliahController extends Controller
             'ids' => ['required', 'array'],
             'ids.*' => ['integer', 'exists:mata_kuliahs,id'],
             ]);
-        // dd($request->all());
 
 
         $action = $request->bulk_action;

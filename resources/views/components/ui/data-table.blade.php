@@ -39,3 +39,4 @@
 
     @include('components.ui.partials.data-table.scripts')
 </div>
+

@@ -24,7 +24,18 @@
 
     <div class="flex-none flex items-center gap-2">
 
-        <x-layouts.partial.global-search/>
+        <x-layouts.partial.global-search />
+
+        <label class="swap swap-rotate">
+            <input id="theme-toggle" type="checkbox" class="theme-controller" />
+
+            <!-- sun -->
+            <x-heroicon-o-sun class="swap-off h-8 w-8 fill-current" />
+
+            <!-- moon -->
+            <x-heroicon-o-moon class="swap-on h-8 w-8 fill-current" />
+
+        </label>
 
         {{-- User dropdown --}}
         <div class="dropdown dropdown-end">
