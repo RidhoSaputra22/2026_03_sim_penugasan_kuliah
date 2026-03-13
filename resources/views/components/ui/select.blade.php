@@ -9,6 +9,7 @@
     'required' => false,
     'searchable' => null,
     'searchPlaceholder' => 'Cari...',
+    'size' => 'md',
 ])
 
 @php
@@ -30,6 +31,20 @@
     }
 
     $xModel = $attributes->get('x-model');
+
+    $selectSizeClass = match($size) {
+        'xs' => 'select-xs',
+        'sm' => 'select-sm',
+        'lg' => 'select-lg',
+        default => 'select-md',
+    };
+
+    $searchInputSizeClass = match($size) {
+        'xs' => 'input-xs',
+        'sm' => 'input-sm',
+        'lg' => 'input-lg',
+        default => 'input-md',
+    };
 @endphp
 
 <div class="w-full">
@@ -68,7 +83,7 @@
                 type="button"
                 @click="isOpen = !isOpen"
                 {{ $attributes->except('x-model')->merge([
-                    'class' => 'select select-bordered w-full flex items-center justify-between ' . ($error ? 'select-error' : '')
+                    'class' => 'select select-bordered w-full flex items-center justify-between ' . $selectSizeClass . ($error ? ' select-error' : '')
                 ]) }}
             >
                 <span
@@ -94,7 +109,7 @@
                             type="text"
                             x-model="searchTerm"
                             placeholder="{{ $searchPlaceholder }}"
-                            class="input input-sm input-bordered w-full pr-8"
+                            class="input input-bordered w-full pr-8 {{ $searchInputSizeClass }}"
                             @click.stop
                         >
                         <svg class="w-4 h-4 absolute right-2.5 top-2.5 text-base-content/40" fill="none"
@@ -138,7 +153,9 @@
         <select
             id="{{ $name }}"
             name="{{ $name }}"
-            {{ $attributes->merge(['class' => 'select select-bordered w-full' . ($error ? ' select-error' : '')]) }}
+            {{ $attributes->merge([
+                'class' => 'select select-bordered w-full ' . $selectSizeClass . ($error ? ' select-error' : '')
+            ]) }}
             {{ $required ? 'required' : '' }}
         >
             @if($placeholder)

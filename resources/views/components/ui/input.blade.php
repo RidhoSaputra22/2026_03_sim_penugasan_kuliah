@@ -9,25 +9,40 @@
     @param string $error - Error message
     @param bool $required - Required field
     @param string $helpText - Helper text below input
+    @param string $size - Input size (xs, sm, md, lg)
 --}}
 
 @props([
-'name' => 'null',
-'label' => null,
-'type' => 'text',
-'placeholder' => '',
-'value' => '',
-'error' => null,
-'required' => false,
-'helpText' => null,
+    'name' => 'null',
+    'label' => null,
+    'type' => 'text',
+    'placeholder' => '',
+    'value' => '',
+    'error' => null,
+    'required' => false,
+    'helpText' => null,
+    'size' => 'md',
 ])
 
 @php
-$inputId = $name . '_' . uniqid();
+    $inputId = $name . '_' . uniqid();
+
+    $sizeClass = match($size) {
+        'xs' => 'input-xs',
+        'sm' => 'input-sm',
+        'lg' => 'input-lg',
+        default => 'input-md',
+    };
+
+    $fileSizeClass = match($size) {
+        'xs' => 'file-input-xs',
+        'sm' => 'file-input-sm',
+        'lg' => 'file-input-lg',
+        default => 'file-input-md',
+    };
 @endphp
 
-
-<div class=" w-full">
+<div class="w-full">
     @if($label)
         <label class="label" for="{{ $inputId }}">
             <span class="label-text">
@@ -37,6 +52,7 @@ $inputId = $name . '_' . uniqid();
                 @endif
             </span>
         </label>
+
         @if($helpText && !$error)
             <label class="label">
                 <span class="label-text-alt text-base-content/70">{{ $helpText }}</span>
@@ -46,13 +62,23 @@ $inputId = $name . '_' . uniqid();
 
     @if($type === 'password')
         <div class="relative">
-            <input type="password" id="{{ $inputId }}" name="{{ $name }}" placeholder="{{ $placeholder }}"
+            <input
+                type="password"
+                id="{{ $inputId }}"
+                name="{{ $name }}"
+                placeholder="{{ $placeholder }}"
                 value="{{ old($name, $value) }}"
-                {{ $attributes->merge(['class' => 'input input-bordered w-full pr-12' . ($error ? ' input-error' : '')]) }}
-                {{ $required ? 'required' : '' }} />
+                {{ $attributes->merge([
+                    'class' => 'input input-bordered w-full pr-12 ' . $sizeClass . ($error ? ' input-error' : '')
+                ]) }}
+                {{ $required ? 'required' : '' }}
+            />
 
-            <button type="button" onclick="togglePassword('{{ $inputId }}')"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 hover:text-base-content transition-colors">
+            <button
+                type="button"
+                onclick="togglePassword('{{ $inputId }}')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 hover:text-base-content transition-colors"
+            >
                 <svg id="{{ $inputId }}_icon_hide" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -68,21 +94,33 @@ $inputId = $name . '_' . uniqid();
         </div>
     @elseif ($type === 'file')
         <div class="flex items-center gap-2">
-            <input type="{{ $type }}" id="{{ $inputId }}" name="{{ $name }}" placeholder="{{ $placeholder }}"
-                value="{{ old($name, $value) }}"
-                {{ $attributes->merge(['class' => 'file-input w-full' . ($error ? ' input-error' : '')]) }}
-                {{ $required ? 'required' : '' }} />
-            @if($type === 'file' && $value)
+            <input
+                type="{{ $type }}"
+                id="{{ $inputId }}"
+                name="{{ $name }}"
+                placeholder="{{ $placeholder }}"
+                {{ $attributes->merge([
+                    'class' => 'file-input w-full ' . $fileSizeClass . ($error ? ' input-error' : '')
+                ]) }}
+                {{ $required ? 'required' : '' }}
+            />
+            @if($value)
                 <a href="{{ Storage::url($value) }}" target="_blank" class="btn btn-outline">Lihat File</a>
             @endif
         </div>
     @else
-         <div class="flex items-center gap-2">
-            <input type="{{ $type }}" id="{{ $inputId }}" name="{{ $name }}" placeholder="{{ $placeholder }}"
+        <div class="flex items-center gap-2">
+            <input
+                type="{{ $type }}"
+                id="{{ $inputId }}"
+                name="{{ $name }}"
+                placeholder="{{ $placeholder }}"
                 value="{{ old($name, $value) }}"
-                {{ $attributes->merge(['class' => 'input input-bordered w-full' . ($error ? ' input-error' : '')]) }}
-                {{ $required ? 'required' : '' }} />
-
+                {{ $attributes->merge([
+                    'class' => 'input input-bordered w-full ' . $sizeClass . ($error ? ' input-error' : '')
+                ]) }}
+                {{ $required ? 'required' : '' }}
+            />
         </div>
     @endif
 
@@ -100,23 +138,23 @@ $inputId = $name . '_' . uniqid();
 </div>
 
 @if($type === 'password')
-@once
-<script>
-function togglePassword(inputId) {
-    const input = document.getElementById(inputId);
-    const iconHide = document.getElementById(inputId + '_icon_hide');
-    const iconShow = document.getElementById(inputId + '_icon_show');
+    @once
+        <script>
+            function togglePassword(inputId) {
+                const input = document.getElementById(inputId);
+                const iconHide = document.getElementById(inputId + '_icon_hide');
+                const iconShow = document.getElementById(inputId + '_icon_show');
 
-    if (input.type === 'password') {
-        input.type = 'text';
-        iconHide.classList.add('hidden');
-        iconShow.classList.remove('hidden');
-    } else {
-        input.type = 'password';
-        iconHide.classList.remove('hidden');
-        iconShow.classList.add('hidden');
-    }
-}
-</script>
-@endonce
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    iconHide.classList.add('hidden');
+                    iconShow.classList.remove('hidden');
+                } else {
+                    input.type = 'password';
+                    iconHide.classList.remove('hidden');
+                    iconShow.classList.add('hidden');
+                }
+            }
+        </script>
+    @endonce
 @endif

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DayOfWeek;
 use App\Models\MataKuliah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class MataKuliahController extends Controller
 {
@@ -12,23 +14,62 @@ class MataKuliahController extends Controller
     {
         $query = MataKuliah::query();
 
+        // Filter hari
         if ($request->filled('hari')) {
             $query->where('hari', $request->hari);
         }
 
+        // Search
         if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('nama', 'like', "%{$request->search}%")
-                  ->orWhere('kode', 'like', "%{$request->search}%")
-                  ->orWhere('dosen', 'like', "%{$request->search}%");
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('kode', 'like', "%{$search}%")
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('dosen', 'like', "%{$search}%")
+                    ->orWhere('hari', 'like', "%{$search}%")
+                    ->orWhere('ruangan', 'like', "%{$search}%");
             });
         }
 
-        $mataKuliah = $query->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
-            ->orderBy('jam_mulai')
-            ->paginate(15);
+        // Sorting untuk data-table component
+        $allowedSorts = [
+            'kode',
+            'nama',
+            'dosen',
+            'hari',
+            'jam_mulai',
+            'jam_selesai',
+            'ruangan',
+            'sks',
+        ];
 
-        // Stats for summary cards
+        $sort = $request->get('sort');
+        $direction = $request->get('direction', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            if ($sort === 'hari') {
+                $query->orderByRaw("
+                FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu') {$direction}
+            ");
+            } else {
+                $query->orderBy($sort, $direction);
+            }
+
+            // Supaya kalau sort selain hari, jam_mulai tetap jadi urutan kedua
+            if ($sort !== 'jam_mulai') {
+                $query->orderBy('jam_mulai');
+            }
+        } else {
+            // Default sorting lama Anda
+            $query->orderByRaw("
+            FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')
+        ")->orderBy('jam_mulai');
+        }
+
+       $mataKuliah = $query->paginate(5)->withQueryString()->fragment('tabel-mata-kuliah');
+
+        // Stats tetap global, tidak terpengaruh filter tabel
         $totalMataKuliah = MataKuliah::count();
         $totalSks = MataKuliah::sum('sks') ?? 0;
         $totalDosen = MataKuliah::distinct('dosen')->count('dosen');
@@ -40,13 +81,14 @@ class MataKuliahController extends Controller
             ->pluck('total', 'hari')
             ->toArray();
 
-        // Total jam kuliah per minggu (in minutes, then convert)
+        // Total jam kuliah per minggu
         $allMk = MataKuliah::all();
         $totalJamPerMinggu = $allMk->sum(function ($mk) {
-            $mulai = \Carbon\Carbon::parse($mk->jam_mulai);
-            $selesai = \Carbon\Carbon::parse($mk->jam_selesai);
+            $mulai = Carbon::parse($mk->jam_mulai);
+            $selesai = Carbon::parse($mk->jam_selesai);
             return $mulai->diffInMinutes($selesai);
         });
+
         $totalJamPerMinggu = round($totalJamPerMinggu / 60, 1);
 
         return view('mata-kuliah.index', compact(
@@ -59,7 +101,6 @@ class MataKuliahController extends Controller
             'totalJamPerMinggu'
         ));
     }
-
     public function create()
     {
         return view('mata-kuliah.create');
@@ -133,5 +174,33 @@ class MataKuliahController extends Controller
         $mataKuliah->delete();
         return redirect()->route('mata-kuliah.index')
             ->with('success', 'Mata kuliah berhasil dihapus.');
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'bulk_action' => ['required', 'string'],
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer', 'exists:mata_kuliahs,id'],
+            ]);
+        // dd($request->all());
+
+
+        $action = $request->bulk_action;
+        $ids = $request->ids;
+
+        if ($action === 'delete') {
+            MataKuliah::whereIn('id', $ids)->delete();
+
+            return back()->with('success', 'Data terpilih berhasil dihapus.');
+        }
+
+        if ($action === 'set_senin') {
+            MataKuliah::whereIn('id', $ids)->update(['hari' => DayOfWeek::MONDAY->value]);
+
+            return back()->with('success', 'Hari berhasil diubah ke Senin.');
+        }
+
+        return back()->with('error', 'Bulk action tidak dikenali.');
     }
 }

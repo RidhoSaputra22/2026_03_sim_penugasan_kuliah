@@ -19,7 +19,7 @@
 
 <div class="stat bg-base-100 shadow-md rounded-lg p-4">
     @if(isset($icon))
-        <div class="stat-figure text-primary ">
+        <div class="stat-figure  ">
             {{ $icon }}
         </div>
     @endif
