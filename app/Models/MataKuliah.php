@@ -12,8 +12,20 @@ class MataKuliah extends Model
         'lms', 'lms_link', 'semester', 'tahun_ajaran', 'warna', 'catatan', 'is_active'
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
     public function tugas()
     {
         return $this->hasMany(Tugas::class, 'mata_kuliah_id');
+    }
+
+    public function absensis()
+    {
+        return $this->hasMany(Absensi::class, 'mata_kuliah_id');
     }
 }

@@ -35,6 +35,7 @@ class DataTable extends Component
         public bool $mobileCard = true,
 
         // routes / actions
+        public mixed $showRoute = null,
         public mixed $editRoute = null,
         public mixed $deleteRoute = null,
         public ?string $bulkActionRoute = null,

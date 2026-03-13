@@ -6,9 +6,7 @@
         <x-layouts.page-header title="Manajemen Tugas" description="Kelola tugas dan deadline Anda">
             <x-slot:actions>
                 <x-ui.button type="primary" size="sm" :href="route('tugas.create')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
+                    <x-heroicon-o-plus class="h-4 w-4" />
                     Tambah Tugas
                 </x-ui.button>
             </x-slot:actions>
@@ -177,6 +175,16 @@
                         <div class="flex-1 min-w-0">
                             <h3 class="font-semibold truncate">{{ $item->judul }}</h3>
                             <p class="text-sm text-base-content/60 mt-0.5">{{ $item->mataKuliah->nama ?? '-' }}</p>
+                            @if($item->absensi)
+                                <div class="mt-2 flex flex-wrap items-center gap-2">
+                                    <x-ui.badge type="info" size="xs">
+                                        {{ $item->absensi->pertemuan_ke ? 'Pertemuan ' . $item->absensi->pertemuan_ke : 'Pertemuan terkait' }}
+                                    </x-ui.badge>
+                                    <x-ui.badge type="ghost" size="xs" :outline="true">
+                                        {{ $item->absensi->tanggal?->translatedFormat('d M Y') ?? '-' }}
+                                    </x-ui.badge>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex flex-col items-end gap-1">
                             <x-ui.badge :type="$statusBadge" size="sm">{{ $statusLabel }}</x-ui.badge>

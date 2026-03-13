@@ -7,6 +7,7 @@ use App\Http\Controllers\MataKuliahController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TugasController;
+use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ImportExportController;
 
@@ -22,7 +23,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Mata Kuliah (Jadwal Kuliah)
-    Route::resource('mata-kuliah', MataKuliahController::class)->except(['show']);
+    Route::post('mata-kuliah/{mataKuliah}/focus-attendance', [MataKuliahController::class, 'saveFocusAttendance'])
+        ->name('mata-kuliah.focus-attendance.save');
+    Route::put('mata-kuliah/{mataKuliah}/focus-attendance-notes', [MataKuliahController::class, 'updateFocusAttendanceNotes'])
+        ->name('mata-kuliah.focus-attendance-notes.update');
+    Route::delete('mata-kuliah/{mataKuliah}/focus-attendance/{absensi}', [MataKuliahController::class, 'destroyFocusAttendance'])
+        ->name('mata-kuliah.focus-attendance.destroy');
+    Route::post('mata-kuliah/{mataKuliah}/focus-task', [MataKuliahController::class, 'storeFocusTask'])
+        ->name('mata-kuliah.focus-task');
+    Route::post('mata-kuliah/{mataKuliah}/focus-todo', [MataKuliahController::class, 'storeFocusTodo'])
+        ->name('mata-kuliah.focus-todo');
+    Route::resource('mata-kuliah', MataKuliahController::class);
     Route::post('mata-kuliah/bulk-action', [MataKuliahController::class, 'bulkAction'])
         ->name('mata-kuliah.bulk-action');
 
@@ -38,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('tugas/{tugas}/progress', [TugasController::class, 'updateProgress'])->name('tugas.progress');
 
     // Todo
-    Route::resource('todo', \App\Http\Controllers\TodoController::class);
+    Route::resource('todo', TodoController::class);
     // Update status todo (AJAX)
     Route::patch('todo/{todo}/status', [TugasController::class, 'updateTodoStatus'])->name('todo.updateStatus');
 
@@ -80,5 +91,3 @@ Route::middleware('auth')->group(function () {
         }
     )->name('global-search');
 });
-
-

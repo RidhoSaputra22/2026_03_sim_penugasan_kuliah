@@ -43,6 +43,12 @@
                                 @isset($rowActions)
                                     {{ $rowActions($row) }}
                                 @else
+                                    @if ($showRoute)
+                                        <a href="{{ $showRoute($row) }}" class="btn btn-sm btn-ghost">
+                                            Fokus
+                                        </a>
+                                    @endif
+
                                     @if ($editRoute)
                                         <a href="{{ $editRoute($row) }}" class="btn btn-sm btn-ghost">
                                             Edit

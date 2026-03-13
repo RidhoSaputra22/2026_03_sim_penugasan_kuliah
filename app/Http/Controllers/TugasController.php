@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Absensi;
 use App\Models\MataKuliah;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use \App\Enums\Status;
 
 class TugasController extends Controller
@@ -13,7 +15,7 @@ class TugasController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Tugas::where('user_id', $user->id)->with('mataKuliah');
+        $query = Tugas::where('user_id', $user->id)->with(['mataKuliah', 'absensi']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -71,13 +73,15 @@ class TugasController extends Controller
     public function create()
     {
         $mataKuliah = MataKuliah::orderBy('nama')->get();
-        return view('tugas.create', compact('mataKuliah'));
+        $absensi = Absensi::with('mataKuliah')->orderByDesc('tanggal')->orderByDesc('pertemuan_ke')->get();
+        return view('tugas.create', compact('mataKuliah', 'absensi'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
+            'absensi_id' => 'nullable|exists:absensis,id',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date|after_or_equal:today',
@@ -90,6 +94,8 @@ class TugasController extends Controller
             'todos.*.judul' => 'required_with:todos|string|max:255',
             'todos.*.deskripsi' => 'nullable|string',
         ]);
+
+        $validated['absensi_id'] = $this->resolveTaskAbsensiId($request);
 
         $validated['user_id'] = auth()->id();
 
@@ -121,7 +127,7 @@ class TugasController extends Controller
     public function show(Tugas $tugas)
     {
         $this->authorize($tugas);
-        $tugas->load('mataKuliah', 'reminders', 'todos');
+        $tugas->load('mataKuliah', 'absensi', 'reminders', 'todos');
         return view('tugas.show', compact('tugas'));
     }
 
@@ -129,7 +135,8 @@ class TugasController extends Controller
     {
         $this->authorize($tugas);
         $mataKuliah = MataKuliah::orderBy('nama')->get();
-        return view('tugas.edit', compact('tugas', 'mataKuliah'));
+        $absensi = Absensi::with('mataKuliah')->orderByDesc('tanggal')->orderByDesc('pertemuan_ke')->get();
+        return view('tugas.edit', compact('tugas', 'mataKuliah', 'absensi'));
     }
 
     public function update(Request $request, Tugas $tugas)
@@ -138,6 +145,7 @@ class TugasController extends Controller
 
         $validated = $request->validate([
             'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
+            'absensi_id' => 'nullable|exists:absensis,id',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date',
@@ -151,6 +159,8 @@ class TugasController extends Controller
             'todos.*.judul' => 'required_with:todos|string|max:255',
             'todos.*.deskripsi' => 'nullable|string',
         ]);
+
+        $validated['absensi_id'] = $this->resolveTaskAbsensiId($request);
 
         if ($request->hasFile('file')) {
             $validated['file'] = $request->file('file')->store('tugas', 'public');
@@ -226,5 +236,22 @@ class TugasController extends Controller
             'progress' => $todo->tugas->progress,
             'tugas_status' => $todo->tugas->status
         ]);
+    }
+
+    private function resolveTaskAbsensiId(Request $request): ?int
+    {
+        if (!$request->filled('absensi_id')) {
+            return null;
+        }
+
+        $absensi = Absensi::findOrFail($request->integer('absensi_id'));
+
+        if ((int) $absensi->mata_kuliah_id !== $request->integer('mata_kuliah_id')) {
+            throw ValidationException::withMessages([
+                'absensi_id' => 'Absensi yang dipilih tidak sesuai dengan mata kuliah tugas.',
+            ]);
+        }
+
+        return $absensi->id;
     }
 }

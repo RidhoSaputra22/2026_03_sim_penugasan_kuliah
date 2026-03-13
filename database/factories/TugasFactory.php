@@ -15,6 +15,7 @@ class TugasFactory extends Factory
         return [
             'user_id' => User::factory(),
             'mata_kuliah_id' => MataKuliah::factory(),
+            'absensi_id' => null,
             'judul' => $this->faker->sentence(3),
             'deskripsi' => $this->faker->paragraph(),
             'deadline' => $this->faker->dateTimeBetween('+1 days', '+1 month'),

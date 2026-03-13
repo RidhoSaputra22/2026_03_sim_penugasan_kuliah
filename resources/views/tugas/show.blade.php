@@ -10,9 +10,7 @@
             <x-slot:actions>
                 <x-ui.button type="ghost" size="sm" :href="route('tugas.index')">← Kembali</x-ui.button>
                 <x-ui.button type="primary" size="sm" :href="route('tugas.edit', $tugas->id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                    <x-heroicon-o-pencil-square class="h-4 w-4" />
                     Edit
                 </x-ui.button>
             </x-slot:actions>
@@ -156,6 +154,33 @@
                     </div>
                     <div class="divider my-0"></div>
                     <div>
+                        <div class="text-xs text-base-content/50 uppercase tracking-wide">Absensi Terkait</div>
+                        @if($tugas->absensi)
+                            <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                                <x-ui.badge type="info">
+                                    {{ $tugas->absensi->pertemuan_ke ? 'Pertemuan ' . $tugas->absensi->pertemuan_ke : 'Pertemuan terkait' }}
+                                </x-ui.badge>
+                                <x-ui.badge type="ghost">
+                                    {{ $tugas->absensi->status?->label() ?? '-' }}
+                                </x-ui.badge>
+                            </div>
+                            <div class="text-sm mt-2 text-base-content/70">
+                                {{ $tugas->absensi->tanggal?->translatedFormat('d F Y') ?? '-' }}
+                            </div>
+                            @if($tugas->absensi->topik)
+                                <div class="text-sm mt-1 text-base-content/60">{{ $tugas->absensi->topik }}</div>
+                            @endif
+                            <a href="{{ route('mata-kuliah.show', $tugas->mataKuliah) }}"
+                                class="btn btn-ghost btn-sm mt-3 px-0">
+                                <x-heroicon-o-link class="h-4 w-4" />
+                                Buka Mode Fokus
+                            </a>
+                        @else
+                            <div class="font-medium mt-0.5 text-base-content/60">Belum ditautkan ke absensi tertentu</div>
+                        @endif
+                    </div>
+                    <div class="divider my-0"></div>
+                    <div>
                         <div class="text-xs text-base-content/50 uppercase tracking-wide">Dosen</div>
                         <div class="font-medium mt-0.5">{{ $tugas->mataKuliah->dosen ?? '-' }}</div>
                     </div>
@@ -187,16 +212,12 @@
             <x-ui.card title="Aksi">
                 <div class="space-y-2">
                     <x-ui.button type="primary" class="w-full" :href="route('tugas.edit', $tugas->id)" :isSubmit="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
+                        <x-heroicon-o-pencil-square class="h-4 w-4" />
                         Edit Tugas
                     </x-ui.button>
                     <x-ui.button type="error" class="w-full" :isSubmit="false" outline
                         @click="$dispatch('confirm-delete', { action: '{{ route('tugas.destroy', $tugas->id) }}', message: 'Hapus tugas {{ $tugas->judul }}?' })">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        <x-heroicon-o-trash class="h-4 w-4" />
                         Hapus Tugas
                     </x-ui.button>
                 </div>

@@ -10,6 +10,7 @@
     <x-ui.card class="">
         @include('tugas/partials/_tugas-form', [
             'mataKuliah' => $mataKuliah,
+            'absensi' => $absensi,
             'tugas' => $tugas,
             'formAction' => route('tugas.update', $tugas->id),
             'method' => 'PUT',

@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Enums\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -8,12 +9,12 @@ class Tugas extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id', 'mata_kuliah_id', 'judul', 'deskripsi', 'deadline', 'status', 'progress',
+        'user_id', 'mata_kuliah_id', 'absensi_id', 'judul', 'deskripsi', 'deadline', 'status', 'progress',
         'prioritas', 'file', 'catatan'
     ];
 
     protected $casts = [
-        'status' => \App\Enums\Status::class,
+        'status' => Status::class,
     ];
 
 
@@ -25,6 +26,11 @@ class Tugas extends Model
     public function mataKuliah()
     {
         return $this->belongsTo(MataKuliah::class, 'mata_kuliah_id');
+    }
+
+    public function absensi()
+    {
+        return $this->belongsTo(Absensi::class, 'absensi_id');
     }
 
     public function reminders()

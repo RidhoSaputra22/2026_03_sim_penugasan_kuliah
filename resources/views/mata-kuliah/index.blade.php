@@ -110,6 +110,7 @@
                         'jam_mulai' => 'time',
                         'jam_selesai' => 'time',
                     ]" :sortable="['kode', 'nama', 'dosen', 'hari', 'jam_mulai', 'jam_selesai', 'ruangan']" :bulkActionRoute="route('mata-kuliah.bulk-action')"
+                    :showRoute="fn($row) => route('mata-kuliah.show', $row->id)"
                     :editRoute="fn($row) => route('mata-kuliah.edit', $row->id)" :deleteRoute="fn($row) => route('mata-kuliah.destroy', $row->id)">
                     <x-slot:filters>
                         <input type="text" name="dosen" value="{{ request('dosen') }}"

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Absensi;
 use App\Models\User;
 use App\Models\MataKuliah;
 use App\Models\Tugas;
@@ -28,6 +29,10 @@ class DatabaseSeeder extends Seeder
         ])->each(function ($user) {
             $mataKuliahs = MataKuliah::factory(3)->create();
             foreach ($mataKuliahs as $mk) {
+                Absensi::factory(4)->create([
+                    'mata_kuliah_id' => $mk->id,
+                ]);
+
                 $tugasList = Tugas::factory(2)->create([
                     'user_id' => $user->id,
                     'mata_kuliah_id' => $mk->id,
