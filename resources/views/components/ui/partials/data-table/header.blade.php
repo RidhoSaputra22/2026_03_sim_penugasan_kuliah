@@ -19,8 +19,8 @@
         </div>
     </div>
 
-    <form method="GET" class="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <label class="input input-bordered input-sm flex min-w-64 items-center gap-2">
+    <form method="GET" action="{{ route(Route::currentRouteName()) }}#{{ Str::slug($title) }}" class="flex flex-col gap-2 lg:flex-row lg:items-center">
+        <label class="input input-bordered input-sm flex w-full sm:min-w-64 items-center gap-2">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-4 w-4 opacity-70"

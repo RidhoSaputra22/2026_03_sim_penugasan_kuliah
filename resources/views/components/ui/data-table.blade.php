@@ -15,7 +15,7 @@
     $hasActiveFilter = collect($filterKeys)->contains(fn ($key) => filled(request($key)));
 @endphp
 
-<div
+<div id="{{ Str::slug($title) }}"
     x-data="dataTableComponent({
         rowIds: @js($rowIds),
     })"
@@ -28,6 +28,8 @@
     @include('components.ui.partials.data-table.filter-info')
 
     @include('components.ui.partials.data-table.bulk-actions')
+
+    @include('components.ui.partials.data-table.pagination')
 
     @include('components.ui.partials.data-table.table')
 

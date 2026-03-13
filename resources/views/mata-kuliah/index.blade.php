@@ -80,21 +80,9 @@
 
 
     {{-- Table --}}
-    @fragment('tabel-mata-kuliah')
-    <x-ui.card >
-        @if ($mataKuliah->isEmpty())
-            <div class="text-center py-12 text-base-content/50">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-30" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <p class="text-lg font-medium">Belum ada mata kuliah</p>
-                <p class="text-sm mt-1">Tambahkan mata kuliah untuk melihat jadwal</p>
-            </div>
-        @else
-            <div class="overflow-x-auto">
-                <x-ui.data-table
+
+    <x-ui.card id="tabel-mata-kuliah">
+          <x-ui.data-table
                     title="Daftar Mata Kuliah"
                     :data="$mataKuliah"
                     model="\App\Models\MataKuliah"
@@ -141,9 +129,5 @@
                         <option value="set_senin">Set Hari = Senin</option>
                     </x-slot:bulkActions>
                 </x-ui.data-table>
-            </div>
-
-        @endif
     </x-ui.card>
-     @endfragment
 </x-layouts.app>
