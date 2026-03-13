@@ -1,6 +1,6 @@
 {{-- Stats Cards Row 1 --}}
-<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-    <x-ui.stat title="Total Tugas" :value="$totalTugas">
+<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-0 sm:mb-4">
+    <x-ui.stat title="Total Tugas" :value="$totalTugas" class="hidden sm:block">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -10,7 +10,7 @@
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Tugas Selesai" :value="$tugasSelesai"
+    <x-ui.stat title="Tugas Selesai" :value="$tugasSelesai" class="hidden sm:block"
         description="{{ $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0 }}% selesai"
         trend="{{ $tugasSelesai > 0 ? 'up' : 'neutral' }}"
         trendValue="{{ $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0 }}%">
@@ -23,7 +23,7 @@
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Dalam Progress" :value="$tugasProgress">
+    <x-ui.stat title="Dalam Progress" :value="$tugasProgress" class="hidden sm:block">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-warning" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -33,7 +33,7 @@
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Terlambat" :value="$tugasTerlambat"
+    <x-ui.stat title="Terlambat" :value="$tugasTerlambat" class="hidden sm:block"
         description="{{ $tugasTerlambat > 0 ? 'Segera selesaikan!' : 'Aman' }}">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 {{ $tugasTerlambat > 0 ? 'text-error' : 'text-success' }}" fill="none" viewBox="0 0 24 24"

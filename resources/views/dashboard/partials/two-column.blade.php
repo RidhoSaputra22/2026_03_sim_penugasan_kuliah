@@ -18,7 +18,7 @@
                         <tr>
                             <th>Jam</th>
                             <th>Mata Kuliah</th>
-                            <th>Ruangan</th>
+                            <th class="hidden sm:block">Ruangan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,12 +27,14 @@
                                 <td class="font-mono text-sm">
                                     {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
                                     {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
+                                    <div class="text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
+
                                 </td>
                                 <td>
                                     <div class="font-medium">{{ $jadwal->nama }}</div>
                                     <div class="text-xs text-base-content/60">{{ $jadwal->dosen }}</div>
                                 </td>
-                                <td>
+                                <td class="hidden sm:block">
                                     <x-ui.badge type="ghost" size="sm">{{ $jadwal->ruangan }}</x-ui.badge>
                                 </td>
                             </tr>

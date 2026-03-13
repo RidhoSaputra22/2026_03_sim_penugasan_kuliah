@@ -20,8 +20,9 @@
         <x-ui.input name="deadline" label="Deadline" type="date" :required="true"
             :value="optional($tugas)->deadline ? \Carbon\Carbon::parse(optional($tugas)->deadline)->format('Y-m-d') : old('deadline') ?? ''" />
         <x-ui.select name="status" label="Status" :searchable="false" :required="true"
-            placeholder="Pilih status" :options="array_combine(\App\Enums\Status::list(), \App\Enums\Status::list())"
-            :value="optional($tugas)->status ?? old('status', 'belum')" />
+            placeholder="Pilih status"
+            :options="collect(\App\Enums\Status::cases())->mapWithKeys(fn($s) => [$s->value => $s->label()])->toArray()"
+            :value="optional($tugas)->status?->value ?? old('status', \App\Enums\Status::BELUM->value)" />
         <x-ui.input name="progress" label="Progress (%)" type="number" placeholder="0" :required="true"
             :value="optional($tugas)->progress ?? old('progress', 0)" />
     </div>

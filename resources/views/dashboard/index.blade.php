@@ -11,9 +11,10 @@
 
     @include('dashboard.partials.stats-row2')
 
+    @include('dashboard.partials.two-column')
+
     @include('dashboard.partials.progress-priority')
 
-    @include('dashboard.partials.two-column')
 
     @include('dashboard.partials.bottom-row')
 
