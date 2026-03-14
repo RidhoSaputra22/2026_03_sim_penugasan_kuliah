@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\MataKuliah;
+use App\Support\ScheduleTime;
 
 class ImportExportHelper
 {
@@ -28,5 +29,13 @@ class ImportExportHelper
     public static function importMataKuliahId($value)
     {
         return MataKuliah::where('kode', $value)->value('id');
+    }
+
+    /**
+     * Normalisasi nilai jam dari import Excel ke format database.
+     */
+    public static function importTime($value)
+    {
+        return ScheduleTime::normalize($value);
     }
 }

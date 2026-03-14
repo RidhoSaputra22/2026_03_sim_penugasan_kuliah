@@ -34,7 +34,7 @@
                 </p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div class="rounded-md border border-base-300/70 bg-base-100/75 p-4">
                     <div class="text-xs uppercase tracking-[0.2em] text-base-content/45">Jadwal</div>
                     <div class="mt-2 text-base font-semibold sm:text-lg">{{ $mataKuliah->hari }}</div>

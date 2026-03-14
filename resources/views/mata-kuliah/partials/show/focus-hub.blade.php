@@ -52,10 +52,7 @@
                                 </div>
 
                                 <div class="hidden gap-2 sm:flex">
-                                    <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="prepareNewAttendance()">
-                                        <x-heroicon-o-plus class="h-4 w-4" />
-                                        Pertemuan Baru
-                                    </x-ui.button>
+
                                     <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="togglePanel('attendance')">
                                         <span x-text="panels.attendance ? 'Tutup Form' : 'Buka Form'"></span>
                                     </x-ui.button>

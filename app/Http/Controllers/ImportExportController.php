@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ScheduleTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenSpout\Common\Entity\Row;
@@ -297,6 +298,22 @@ class ImportExportController extends Controller
                     continue;
                 }
 
+                $rowError = $this->validateImportRow($module, $data);
+
+                if ($rowError) {
+                    $errors[] = "Baris {$rowNum}: {$rowError}";
+
+                    if (!$skipErrors) {
+                        $reader->close();
+
+                        return redirect()->back()
+                            ->with('error', "Import gagal pada baris {$rowNum}: {$rowError}")
+                            ->with('import_errors', $errors);
+                    }
+
+                    continue;
+                }
+
                 // Cek duplikat: lewati jika semua kolom unique_by sudah ada di database
                 $uniqueBy = $config['unique_by'] ?? [];
 
@@ -371,5 +388,22 @@ class ImportExportController extends Controller
         }
 
         return \Illuminate\Support\Str::limit($message, 120);
+    }
+
+    protected function validateImportRow(string $module, array $data): ?string
+    {
+        if ($module !== 'mata-kuliah') {
+            return null;
+        }
+
+        if (empty($data['jam_mulai']) || empty($data['jam_selesai'])) {
+            return 'Format jam harus berupa HH:MM, HH.MM, atau AM/PM.';
+        }
+
+        if (!ScheduleTime::isValidRange($data['jam_mulai'], $data['jam_selesai'])) {
+            return 'Jam selesai harus lebih besar dari jam mulai.';
+        }
+
+        return null;
     }
 }

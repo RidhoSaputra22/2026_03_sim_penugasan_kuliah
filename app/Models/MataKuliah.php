@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Support\ScheduleTime;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +19,42 @@ class MataKuliah extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    protected function jamMulai(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => ScheduleTime::format($value) ?? (is_string($value) ? trim($value) : null),
+            set: fn($value) => ScheduleTime::normalize($value) ?? $value,
+        );
+    }
+
+    protected function jamSelesai(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => ScheduleTime::format($value) ?? (is_string($value) ? trim($value) : null),
+            set: fn($value) => ScheduleTime::normalize($value) ?? $value,
+        );
+    }
+
+    protected function durasiMenit(): Attribute
+    {
+        return Attribute::make(
+            get: fn($_, array $attributes) => ScheduleTime::diffInMinutes(
+                $attributes['jam_mulai'] ?? null,
+                $attributes['jam_selesai'] ?? null
+            ),
+        );
+    }
+
+    protected function durasiKuliahLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn($_, array $attributes) => ScheduleTime::humanizeDuration(
+                $attributes['jam_mulai'] ?? null,
+                $attributes['jam_selesai'] ?? null
+            ),
+        );
     }
 
     public function tugas()

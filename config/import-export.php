@@ -50,6 +50,8 @@ return [
             'LMS', 'LMS Link', 'Semester', 'Tahun Ajaran', 'Warna', 'Catatan', 'Aktif'
         ],
         'importers' => [
+            'jam_mulai' => [\App\Helpers\ImportExportHelper::class, 'importTime'],
+            'jam_selesai' => [\App\Helpers\ImportExportHelper::class, 'importTime'],
             'is_active' => [\App\Helpers\ImportExportHelper::class, 'importIsActive'],
         ],
         'unique_by' => ['kelas', 'tahun_ajaran', 'semester'],

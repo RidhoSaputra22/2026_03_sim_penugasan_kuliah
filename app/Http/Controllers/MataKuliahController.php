@@ -90,9 +90,7 @@ class MataKuliahController extends Controller
         // Total jam kuliah per minggu
         $allMk = MataKuliah::all();
         $totalJamPerMinggu = $allMk->sum(function ($mk) {
-            $mulai = Carbon::parse($mk->jam_mulai);
-            $selesai = Carbon::parse($mk->jam_selesai);
-            return $mulai->diffInMinutes($selesai);
+            return $mk->durasi_menit ?? 0;
         });
 
         $totalJamPerMinggu = round($totalJamPerMinggu / 60, 1);
@@ -143,12 +141,7 @@ class MataKuliahController extends Controller
             ->orderBy('deadline')
             ->get();
 
-        $durasiMenit = Carbon::parse($mataKuliah->jam_mulai)->diffInMinutes(Carbon::parse($mataKuliah->jam_selesai));
-        $durasiKuliah = sprintf(
-            '%d jam %d menit',
-            intdiv($durasiMenit, 60),
-            $durasiMenit % 60
-        );
+        $durasiKuliah = $mataKuliah->durasi_kuliah_label;
 
         $absensiPayload = $absensis->map(function (Absensi $item) use ($mataKuliah) {
             $notes = $this->normalizeAttendanceNotes($item->catatan);

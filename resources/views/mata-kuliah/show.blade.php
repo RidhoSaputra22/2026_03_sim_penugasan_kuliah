@@ -74,13 +74,9 @@
         class="space-y-6 pb-28 text-[13px] sm:pb-24 sm:text-base lg:pb-0">
         @include('mata-kuliah.partials.show.overview')
 
-        <div class="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
-            @include('mata-kuliah.partials.show.task-column')
-            @include('mata-kuliah.partials.show.focus-hub')
-        </div>
+        <x-ui.callendar/>
 
-        @include('mata-kuliah.partials.show.mobile-fab')
-        @include('mata-kuliah.partials.show.task-modal')
+
     </div>
 
     @push('scripts')
