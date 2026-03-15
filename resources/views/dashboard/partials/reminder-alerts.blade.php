@@ -1,6 +1,6 @@
 {{-- Reminder Alerts --}}
 @foreach ($mataKuliahBerlangsung as $mataKuliahAktif)
-    <x-ui.alert type="success" :dismissible="true" class="mb-3">
+    <x-ui.alert type="success" :dismissible="false" class="mb-3 alert-vertical sm:alert-horizontal">
         <div>
             <div class="font-medium">
                 {{ $mataKuliahAktif->nama }} sedang berlangsung sekarang.
@@ -21,6 +21,7 @@
                 <x-heroicon-o-bolt class="h-4 w-4" />
                 Masuk mode fokus
             </x-ui.button>
+
         </x-slot:actions>
     </x-ui.alert>
 @endforeach

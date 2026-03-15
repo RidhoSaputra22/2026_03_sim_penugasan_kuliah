@@ -21,6 +21,11 @@ class TugasController extends Controller
 
         $user = auth()->user();
         $query = Tugas::where('user_id', $user->id)->with(['mataKuliah', 'absensi']);
+        $activeDeadlineTasks = Tugas::where('user_id', $user->id)
+            ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+            ->with('mataKuliah')
+            ->orderBy('deadline', 'asc')
+            ->get();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -61,6 +66,37 @@ class TugasController extends Controller
             ->whereBetween('deadline', [now()->startOfWeek(), now()->endOfWeek()])
             ->count();
 
+        $taskCalendarEvents = $activeDeadlineTasks
+            ->map(function (Tugas $task) {
+                $deadline = \Carbon\Carbon::parse($task->deadline);
+                $statusValue = $task->status instanceof Status ? $task->status->value : (string) $task->status;
+                $statusEnum = $task->status instanceof Status ? $task->status : Status::tryFrom($statusValue);
+
+                return [
+                    'id' => 'tugas-' . $task->id,
+                    'title' => $task->judul,
+                    'start' => $deadline->toDateString(),
+                    'allDay' => true,
+                    'extendedProps' => [
+                        'type' => 'deadline',
+                        'task_id' => $task->id,
+                        'mata_kuliah' => $task->mataKuliah->nama ?? '-',
+                        'status' => $statusValue,
+                        'status_label' => $statusEnum?->label() ?? $statusValue,
+                        'progress' => (int) ($task->progress ?? 0),
+                        'prioritas' => $task->prioritas ?? 'rendah',
+                        'detail_url' => route('tugas.show', $task),
+                        'deadline_label' => $deadline->translatedFormat('d M Y'),
+                    ],
+                ];
+            })
+            ->values();
+
+
+        $defaultTaskDate = $activeDeadlineTasks->first()
+            ? \Carbon\Carbon::parse($activeDeadlineTasks->first()->deadline)->toDateString()
+            : now()->toDateString();
+
         return view('tugas.index', compact(
             'tugas',
             'mataKuliah',
@@ -71,7 +107,9 @@ class TugasController extends Controller
             'tugasTerlambat',
             'avgProgress',
             'tugasPerPrioritas',
-            'deadlineMingguIni'
+            'deadlineMingguIni',
+            'taskCalendarEvents',
+            'defaultTaskDate'
         ));
     }
 

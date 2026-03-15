@@ -32,7 +32,7 @@
 @endphp
 
 <div
-    {{ $attributes->merge(['class' => "alert {$typeClass}"]) }}
+    {{ $attributes->merge(['class' => "alert  {$typeClass}"]) }}
     @if($dismissible)
         x-data="{ show: true }"
         x-show="show"
@@ -54,16 +54,18 @@
             {{ $slot }}
         </div>
 
-        @if($hasActions)
-            <div class="flex shrink-0 items-center gap-2 self-start sm:self-center">
-                @if(isset($actions))
-                    {{ $actions }}
-                @endif
-
-                @if($dismissible)
-                    <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="show = false">✕</x-ui.button>
-                @endif
-            </div>
-        @endif
     </div>
+    @if($hasActions)
+        <div class="flex shrink-0 items-center gap-2 self-start sm:self-center">
+            @if(isset($actions))
+                {{ $actions }}
+            @endif
+
+            @if($dismissible)
+                <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="show = false">
+                    ✕
+                </x-ui.button>
+            @endif
+        </div>
+    @endif
 </div>
