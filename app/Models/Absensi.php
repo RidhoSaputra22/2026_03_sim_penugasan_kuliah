@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\NormalizedEnumCast;
 use App\Enums\AttendanceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ class Absensi extends Model
     {
         return [
             'tanggal' => 'date',
-            'status' => AttendanceStatus::class,
+            'status' => NormalizedEnumCast::class . ':' . AttendanceStatus::class,
             'catatan' => 'array',
         ];
     }

@@ -1,7 +1,14 @@
 @php
+    use App\Enums\Status;
+
     $selesai = \App\Enums\Status::SELESAI->value;
     $belum = \App\Enums\Status::BELUM->value;
     $progress = \App\Enums\Status::PROGRESS->value;
+    $statusOptions = Status::options();
+    $tugasStatusValue = $tugas->status instanceof Status ? $tugas->status->value : (string) $tugas->status;
+    $tugasStatusLabel = $tugas->status instanceof Status
+        ? $tugas->status->label()
+        : (Status::tryFrom((string) $tugas->status)?->label() ?? (string) $tugas->status);
 @endphp
 
 <x-layouts.app title="Detail Tugas">
@@ -23,22 +30,16 @@
         <div class="lg:col-span-2 space-y-6">
             <x-ui.card title="{{ $tugas->judul }}">
                 @php
-                    $statusBadge = match($tugas->status) {
+                    $statusBadge = match($tugasStatusValue) {
                         $belum => 'error',
                         $progress => 'warning',
                         $selesai => 'success',
                         default => 'ghost',
                     };
-                    $statusLabel = match($tugas->status) {
-                        $belum => 'Belum Dikerjakan',
-                        $progress => 'Sedang Dikerjakan',
-                        $selesai => $selesai,
-                        default => $tugas->status,
-                    };
                 @endphp
 
                 <div class="flex items-center gap-2 mb-4">
-                    <x-ui.badge :type="$statusBadge">{{ $statusLabel }}</x-ui.badge>
+                    <x-ui.badge :type="$statusBadge">{{ $tugasStatusLabel }}</x-ui.badge>
                     <x-ui.badge type="info">{{ $tugas->mataKuliah->nama ?? '-' }}</x-ui.badge>
                 </div>
 
@@ -57,9 +58,13 @@
                     @if($tugas->todos && $tugas->todos->count())
                         <ul class="space-y-2">
                             @foreach($tugas->todos as $todo)
+                                @php
+                                    $todoStatusValue = $todo->status instanceof Status ? $todo->status->value : (string) $todo->status;
+                                @endphp
                                 <li class="border rounded p-3 bg-base-100 flex flex-col gap-1"
                                     x-data="{
-                                        status: '{{ $todo->status }}',
+                                        status: '{{ $todoStatusValue }}',
+                                        labels: @js($statusOptions),
                                         updateStatus(e) {
                                             const checked = e.target.checked;
                                             const newStatus = checked ? '{{ $selesai }}' : '{{ $belum }}';
@@ -91,11 +96,11 @@
                                         </label>
                                         <div class="ml-auto">
                                             <template x-if="status === '{{$selesai}}'">
-                                            <x-ui.badge type="success">Selesai</x-ui.badge>
-                                        </template>
-                                        <template x-if="status !== '{{$selesai}}'">
-                                            <x-ui.badge type="warning">Pending</x-ui.badge>
-                                        </template>
+                                                <x-ui.badge type="success" x-text="labels[status] || status"></x-ui.badge>
+                                            </template>
+                                            <template x-if="status !== '{{$selesai}}'">
+                                                <x-ui.badge type="warning" x-text="labels[status] || status"></x-ui.badge>
+                                            </template>
                                         </div>
                                     </div>
                                     @if($todo->deskripsi)
@@ -117,7 +122,7 @@
 
             {{-- Progress Update Section --}}
             <x-ui.card title="Progress">
-                <div class="mb-4" x-data="{ progress: {{ $tugas->progress }}, status: '{{ $tugas->status }}' }" x-init="
+                <div class="mb-4" x-data="{ progress: {{ $tugas->progress }}, status: '{{ $tugasStatusValue }}', labels: @js($statusOptions) }" x-init="
                     window.addEventListener('todo-progress-updated', e => {
                         progress = e.detail.progress;
                         status = e.detail.tugas_status;
@@ -133,7 +138,7 @@
                             'badge-success': status === '{{$selesai}}',
                             'badge-warning': status === '{{$progress}}',
                             'badge-error': status === '{{$belum}}'
-                        }" x-text="status.charAt(0).toUpperCase() + status.slice(1)"></span>
+                        }" x-text="labels[status] || status"></span>
                     </div>
                 </div>
             </x-ui.card>
@@ -185,13 +190,13 @@
                     <div>
                         @php
                             $daysLeft = now()->diffInDays($tugas->deadline, false);
-                            $isOverdue = $daysLeft < 0 && $tugas->status !== $selesai;
+                            $isOverdue = $daysLeft < 0 && $tugasStatusValue !== $selesai;
                         @endphp
                         <div class="text-xs text-base-content/50 uppercase tracking-wide">Deadline</div>
                         <div class="font-medium mt-0.5 {{ $isOverdue ? 'text-error' : '' }}">
                             {{ \Carbon\Carbon::parse($tugas->deadline)->format('d F Y') }}
                         </div>
-                        @if($tugas->status !== $selesai)
+                        @if($tugasStatusValue !== $selesai)
                             <div class="text-xs mt-1 {{ $isOverdue ? 'text-error' : ($daysLeft <= 3 ? 'text-warning' : 'text-base-content/60') }}">
                                 {{ $isOverdue ? 'Terlambat ' . abs(ceil($daysLeft)) . ' hari' : ceil($daysLeft) . ' hari lagi' }}
                             </div>

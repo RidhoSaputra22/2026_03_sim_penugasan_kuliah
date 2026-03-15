@@ -18,6 +18,10 @@ class MataKuliahController extends Controller
 {
     public function index(Request $request)
     {
+        $this->normalizeRequestEnums($request, [
+            'hari' => DayOfWeek::class,
+        ]);
+
         $query = MataKuliah::query();
 
         // Filter hari
@@ -55,9 +59,7 @@ class MataKuliahController extends Controller
 
         if ($sort && in_array($sort, $allowedSorts, true)) {
             if ($sort === 'hari') {
-                $query->orderByRaw("
-                FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu') {$direction}
-            ");
+                $query->orderByRaw($this->dayOrderSql($direction));
             } else {
                 $query->orderBy($sort, $direction);
             }
@@ -67,10 +69,8 @@ class MataKuliahController extends Controller
                 $query->orderBy('jam_mulai');
             }
         } else {
-            // Default sorting lama Anda
-            $query->orderByRaw("
-            FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')
-        ")->orderBy('jam_mulai');
+            $query->orderByRaw($this->dayOrderSql())
+                ->orderBy('jam_mulai');
         }
 
        $mataKuliah = $query->paginate(5)->withQueryString()->fragment('tabel-mata-kuliah');
@@ -121,23 +121,10 @@ class MataKuliahController extends Controller
             ->with([
                 'absensi',
                 'todos' => fn($query) => $query
-                    ->orderByRaw("
-                        CASE
-                            WHEN UPPER(status) = 'SELESAI' THEN 3
-                            WHEN UPPER(status) = 'PROGRESS' THEN 2
-                            ELSE 1
-                        END
-                    ")
+                    ->orderByRaw($this->todoStatusOrderSql())
                     ->orderBy('deadline'),
             ])
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'BELUM' THEN 1
-                    WHEN status = 'PROGRESS' THEN 2
-                    WHEN status = 'SELESAI' THEN 3
-                    ELSE 4
-                END
-            ")
+            ->orderByRaw($this->taskStatusOrderSql())
             ->orderBy('deadline')
             ->get();
 
@@ -216,6 +203,10 @@ class MataKuliahController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizeRequestEnums($request, [
+            'hari' => DayOfWeek::class,
+        ]);
+
         $validated = $request->validate([
             'kode' => 'required|string|max:20|unique:mata_kuliahs,kode',
             'nama' => 'required|string|max:100',
@@ -223,7 +214,7 @@ class MataKuliahController extends Controller
             'kelas' => 'nullable|string|max:10',
             'dosen' => 'required|string|max:100',
             'ruangan' => 'required|string|max:50',
-            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'hari' => ['required', Rule::enum(DayOfWeek::class)->only(DayOfWeek::academicCases())],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'lms' => 'nullable|string|max:50',
@@ -250,6 +241,10 @@ class MataKuliahController extends Controller
 
     public function update(Request $request, MataKuliah $mataKuliah)
     {
+        $this->normalizeRequestEnums($request, [
+            'hari' => DayOfWeek::class,
+        ]);
+
         $validated = $request->validate([
             'kode' => 'required|string|max:20|unique:mata_kuliahs,kode,' . $mataKuliah->id,
             'nama' => 'required|string|max:100',
@@ -257,7 +252,7 @@ class MataKuliahController extends Controller
             'kelas' => 'nullable|string|max:10',
             'dosen' => 'required|string|max:100',
             'ruangan' => 'required|string|max:50',
-            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'hari' => ['required', Rule::enum(DayOfWeek::class)->only(DayOfWeek::academicCases())],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'lms' => 'nullable|string|max:50',
@@ -313,6 +308,10 @@ class MataKuliahController extends Controller
 
     public function saveFocusAttendance(Request $request, MataKuliah $mataKuliah)
     {
+        $this->normalizeRequestEnums($request, [
+            'status' => AttendanceStatus::class,
+        ]);
+
         $validated = $request->validateWithBag('attendanceManager', [
             'absensi_id' => ['nullable', 'integer', Rule::exists('absensis', 'id')],
             'tanggal' => [
@@ -323,7 +322,7 @@ class MataKuliahController extends Controller
                     ->ignore($request->integer('absensi_id')),
             ],
             'pertemuan_ke' => ['nullable', 'integer', 'min:1', 'max:32'],
-            'status' => ['required', Rule::in(AttendanceStatus::list())],
+            'status' => ['required', Rule::enum(AttendanceStatus::class)],
             'topik' => ['nullable', 'string', 'max:255'],
         ], [
             'tanggal.unique' => 'Absensi pada tanggal ini sudah ada. Pilih tanggal lain atau edit data yang sudah tersimpan.',
@@ -619,14 +618,7 @@ class MataKuliahController extends Controller
         $nextTaskId = Tugas::query()
             ->where('user_id', auth()->id())
             ->where('mata_kuliah_id', $mataKuliah->id)
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'BELUM' THEN 1
-                    WHEN status = 'PROGRESS' THEN 2
-                    WHEN status = 'SELESAI' THEN 3
-                    ELSE 4
-                END
-            ")
+            ->orderByRaw($this->taskStatusOrderSql())
             ->orderBy('deadline')
             ->value('id');
 
@@ -660,13 +652,7 @@ class MataKuliahController extends Controller
         $tugas->load([
             'absensi',
             'todos' => fn ($query) => $query
-                ->orderByRaw("
-                    CASE
-                        WHEN UPPER(status) = 'SELESAI' THEN 3
-                        WHEN UPPER(status) = 'PROGRESS' THEN 2
-                        ELSE 1
-                    END
-                ")
+                ->orderByRaw($this->todoStatusOrderSql())
                 ->orderBy('deadline'),
         ]);
     }
@@ -738,7 +724,7 @@ class MataKuliahController extends Controller
     private function syncTugasProgressFromTodos(Tugas $tugas): void
     {
         $total = $tugas->todos()->count();
-        $done = $tugas->todos()->whereIn('status', [Status::SELESAI->value, 'SELESAI'])->count();
+        $done = $tugas->todos()->where('status', Status::SELESAI->value)->count();
 
         $progress = $total > 0 ? (int) round(($done / $total) * 100) : 0;
         $status = $progress >= 100
@@ -759,7 +745,7 @@ class MataKuliahController extends Controller
 
         $value = strtoupper((string) $status);
 
-        return match ($value) {
+        return Status::tryFrom($value)?->value ?? match ($value) {
             'PENDING' => Status::BELUM->value,
             'DONE', 'COMPLETED', 'COMPLETE' => Status::SELESAI->value,
             'IN_PROGRESS' => Status::PROGRESS->value,
@@ -769,12 +755,7 @@ class MataKuliahController extends Controller
 
     private function statusLabel(string $status): string
     {
-        return match ($status) {
-            Status::SELESAI->value => 'Selesai',
-            Status::PROGRESS->value => 'Progress',
-            Status::BELUM->value => 'Belum',
-            default => ucfirst(strtolower($status)),
-        };
+        return Status::tryFrom($status)?->label() ?? ucfirst(strtolower($status));
     }
 
     private function deadlineRelativeLabel(int $deadlineOffset, string $status): string
@@ -858,5 +839,33 @@ class MataKuliahController extends Controller
             ->filter(fn(array $note) => $note['judul'] !== '' || $note['isi'] !== '')
             ->values()
             ->all();
+    }
+
+    private function dayOrderSql(string $direction = 'asc'): string
+    {
+        $values = collect(DayOfWeek::academicList())
+            ->map(fn (string $day) => "'" . $day . "'")
+            ->implode(', ');
+
+        return "FIELD(hari, {$values}) {$direction}";
+    }
+
+    private function taskStatusOrderSql(): string
+    {
+        return sprintf(
+            "CASE WHEN status = '%s' THEN 1 WHEN status = '%s' THEN 2 WHEN status = '%s' THEN 3 ELSE 4 END",
+            Status::BELUM->value,
+            Status::PROGRESS->value,
+            Status::SELESAI->value,
+        );
+    }
+
+    private function todoStatusOrderSql(): string
+    {
+        return sprintf(
+            "CASE WHEN UPPER(status) = '%s' THEN 3 WHEN UPPER(status) = '%s' THEN 2 ELSE 1 END",
+            Status::SELESAI->value,
+            Status::PROGRESS->value,
+        );
     }
 }

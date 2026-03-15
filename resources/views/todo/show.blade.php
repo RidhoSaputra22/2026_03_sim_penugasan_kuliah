@@ -1,4 +1,9 @@
 <x-layouts.app title="Detail Todo">
+    @php
+        $statusLabel = $todo->status instanceof \App\Enums\Status
+            ? $todo->status->label()
+            : (\App\Enums\Status::tryFrom((string) $todo->status)?->label() ?? (string) $todo->status);
+    @endphp
     <div class="container">
         <h2>Detail Todo</h2>
         <div class="mb-3">
@@ -8,7 +13,7 @@
             <strong>Deskripsi:</strong> {{ $todo->deskripsi }}
         </div>
         <div class="mb-3">
-            <strong>Status:</strong> {{ $todo->status }}
+            <strong>Status:</strong> {{ $statusLabel }}
         </div>
         <div class="mb-3">
             <strong>Deadline:</strong> {{ $todo->deadline }}

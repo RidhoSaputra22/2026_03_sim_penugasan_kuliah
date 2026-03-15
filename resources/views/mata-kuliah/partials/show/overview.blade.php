@@ -1,3 +1,9 @@
+@php
+    $hariLabel = $mataKuliah->hari instanceof \App\Enums\DayOfWeek
+        ? $mataKuliah->hari->label()
+        : $mataKuliah->hari;
+@endphp
+
 <x-ui.card class="relative overflow-hidden border border-base-300/70 bg-base-100">
     <div class="absolute -left-12 top-0 h-40 w-40 rounded-md bg-primary/10 blur-3xl"></div>
     <div class="absolute -right-12 bottom-0 h-48 w-48 rounded-md bg-warning/10 blur-3xl"></div>
@@ -37,7 +43,7 @@
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div class="rounded-md border border-base-300/70 bg-base-100/75 p-4">
                     <div class="text-xs uppercase tracking-[0.2em] text-base-content/45">Jadwal</div>
-                    <div class="mt-2 text-base font-semibold sm:text-lg">{{ $mataKuliah->hari }}</div>
+                    <div class="mt-2 text-base font-semibold sm:text-lg">{{ $hariLabel }}</div>
                     <div class="text-xs text-base-content/60 sm:text-sm">
                         {{ \Carbon\Carbon::parse($mataKuliah->jam_mulai)->format('H:i') }} -
                         {{ \Carbon\Carbon::parse($mataKuliah->jam_selesai)->format('H:i') }}

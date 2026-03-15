@@ -30,7 +30,7 @@ class MataKuliahImportTimeTest extends TestCase
                     'A',
                     'Dr. Arham',
                     'B112',
-                    'Senin',
+                    'SENIN',
                     '07.20',
                     '2:40 PM',
                     '',
@@ -48,6 +48,7 @@ class MataKuliahImportTimeTest extends TestCase
 
         $this->assertDatabaseHas('mata_kuliahs', [
             'kode' => 'IF701',
+            'hari' => 'Senin',
             'jam_mulai' => '07:20:00',
             'jam_selesai' => '14:40:00',
         ]);

@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Status;
 use App\Models\Absensi;
 use App\Models\MataKuliah;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use \App\Enums\Status;
 
 class TugasController extends Controller
 {
     public function index(Request $request)
     {
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
+
         $user = auth()->user();
         $query = Tugas::where('user_id', $user->id)->with(['mataKuliah', 'absensi']);
 
@@ -79,13 +84,17 @@ class TugasController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
+
         $validated = $request->validate([
             'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
             'absensi_id' => 'nullable|exists:absensis,id',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date|after_or_equal:today',
-            'status' => 'required|in:' . Status::BELUM->value . ',' . Status::PROGRESS->value . ',' . Status::SELESAI->value,
+            'status' => ['required', Rule::enum(Status::class)->only(Status::taskCases())],
             'progress' => 'required|integer|min:0|max:100',
             'prioritas' => 'required|in:rendah,sedang,tinggi',
             'file' => 'nullable',
@@ -113,7 +122,7 @@ class TugasController extends Controller
                     $tugas->todos()->create([
                         'judul' => $todo['judul'],
                         'deskripsi' => $todo['deskripsi'] ?? null,
-                        'status' => Status::BELUM,
+                        'status' => Status::BELUM->value,
                         'deadline' => $tugas->deadline,
                     ]);
                 }
@@ -142,6 +151,9 @@ class TugasController extends Controller
     public function update(Request $request, Tugas $tugas)
     {
         $this->authorize($tugas);
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
 
         $validated = $request->validate([
             'mata_kuliah_id' => 'required|exists:mata_kuliahs,id',
@@ -149,7 +161,7 @@ class TugasController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'deadline' => 'required|date',
-            'status' => 'required|in:' . Status::BELUM->value . ',' . Status::PROGRESS->value . ',' . Status::SELESAI->value,
+            'status' => ['required', Rule::enum(Status::class)->only(Status::taskCases())],
 
             'progress' => 'required|integer|min:0|max:100',
             'prioritas' => 'required|in:rendah,sedang,tinggi',
@@ -176,7 +188,7 @@ class TugasController extends Controller
                     $tugas->todos()->create([
                         'judul' => $todo['judul'],
                         'deskripsi' => $todo['deskripsi'] ?? null,
-                        'status' => Status::BELUM,
+                        'status' => Status::BELUM->value,
                         'deadline' => $tugas->deadline,
                     ]);
                 }
@@ -200,9 +212,9 @@ class TugasController extends Controller
     private function updateTugasProgressFromTodos(Tugas $tugas)
     {
         $total = $tugas->todos()->count();
-        $done = $tugas->todos()->where('status', Status::SELESAI)->count();
+        $done = $tugas->todos()->where('status', Status::SELESAI->value)->count();
         $progress = $total > 0 ? intval(round(($done / $total) * 100)) : 0;
-        $status = $progress >= 100 ? Status::SELESAI : ($progress > 0 ? Status::PROGRESS : Status::BELUM);
+        $status = $progress >= 100 ? Status::SELESAI->value : ($progress > 0 ? Status::PROGRESS->value : Status::BELUM->value);
         $tugas->progress = $progress;
         $tugas->status = $status;
         $tugas->save();
@@ -223,8 +235,11 @@ class TugasController extends Controller
         if ($todo->tugas->user_id !== auth()->id()) {
             abort(403);
         }
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
         $validated = $request->validate([
-            'status' => 'required|in:' . Status::BELUM->value . ',' . Status::SELESAI->value,
+            'status' => ['required', Rule::enum(Status::class)->only([Status::BELUM, Status::SELESAI])],
         ]);
         $todo->status = $validated['status'];
         $todo->save();
@@ -232,10 +247,15 @@ class TugasController extends Controller
         $this->updateTugasProgressFromTodos($todo->tugas);
         return response()->json([
             'success' => true,
-            'status' => $todo->status,
+            'status' => $this->statusValue($todo->status),
             'progress' => $todo->tugas->progress,
-            'tugas_status' => $todo->tugas->status
+            'tugas_status' => $this->statusValue($todo->tugas->status),
         ]);
+    }
+
+    private function statusValue(mixed $status): string
+    {
+        return $status instanceof Status ? $status->value : (string) $status;
     }
 
     private function resolveTaskAbsensiId(Request $request): ?int

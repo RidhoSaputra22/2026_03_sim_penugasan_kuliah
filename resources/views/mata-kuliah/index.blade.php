@@ -64,7 +64,7 @@
         <h3 class="font-semibold text-sm mb-3">Distribusi Jadwal per Hari</h3>
         <div class="flex flex-wrap gap-2">
             @php
-                $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                $hariList = \App\Enums\DayOfWeek::academicList();
                 $hariColors = ['primary', 'secondary', 'accent', 'info', 'success', 'warning'];
             @endphp
             @foreach ($hariList as $i => $hari)
@@ -115,14 +115,7 @@
                     <x-slot:filters>
                         <x-ui.input size="sm" name="dosen" :value="request('dosen')" placeholder="Filter dosen" />
                         <x-ui.select size="sm" name="hari" :searchable="false" placeholder="Semua Hari"
-                            :options="[
-                                'Senin' => 'Senin',
-                                'Selasa' => 'Selasa',
-                                'Rabu' => 'Rabu',
-                                'Kamis' => 'Kamis',
-                                'Jumat' => 'Jumat',
-                                'Sabtu' => 'Sabtu',
-                            ]" :value="request('hari')" />
+                            :options="\App\Enums\DayOfWeek::academicOptions()" :value="request('hari')" />
                     </x-slot:filters>
 
                     <x-slot:bulkActions>

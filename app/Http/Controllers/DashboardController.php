@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DayOfWeek;
 use App\Models\Event;
 use App\Models\MataKuliah;
 use App\Models\Todo;
 use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use \App\Enums\Status;
+use App\Enums\Status;
 
 class DashboardController extends Controller
 {
@@ -40,8 +41,8 @@ class DashboardController extends Controller
             ->get();
 
         // Jadwal hari ini
-        $hariIni = Carbon::now()->locale('id')->isoFormat('dddd');
-        $jadwalHariIni = MataKuliah::where('hari', $hariIni)
+        $hariIni = DayOfWeek::fromIsoDayNumber(Carbon::now()->dayOfWeekIso);
+        $jadwalHariIni = MataKuliah::where('hari', $hariIni->value)
             ->orderBy('jam_mulai', 'asc')
             ->get();
 
@@ -94,8 +95,8 @@ class DashboardController extends Controller
             ->get();
 
         // Jadwal besok
-        $hariBesok = Carbon::tomorrow()->locale('id')->isoFormat('dddd');
-        $jadwalBesok = MataKuliah::where('hari', $hariBesok)
+        $hariBesok = DayOfWeek::fromIsoDayNumber(Carbon::tomorrow()->dayOfWeekIso);
+        $jadwalBesok = MataKuliah::where('hari', $hariBesok->value)
             ->orderBy('jam_mulai', 'asc')
             ->get();
 

@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Enums\Status;
 use Illuminate\Http\Request;
 use App\Models\Todo;
 use App\Models\Tugas;
+use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
 {
@@ -40,13 +41,18 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
+
         $validated = $request->validate([
             'tugas_id' => 'required|exists:tugas,id',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'status' => 'nullable|string',
+            'status' => ['nullable', Rule::enum(Status::class)->only(Status::taskCases())],
             'deadline' => 'nullable|date',
         ]);
+        $validated['status'] = $validated['status'] ?? Status::BELUM->value;
         $todo = Todo::create($validated);
         return redirect()->route('tugas.show', $todo->tugas_id)->with('success', 'Todo berhasil ditambahkan!');
     }
@@ -76,13 +82,17 @@ class TodoController extends Controller
     public function update(Request $request, $id)
     {
         $todo = Todo::findOrFail($id);
+        $this->normalizeRequestEnums($request, [
+            'status' => Status::class,
+        ]);
         $validated = $request->validate([
             'tugas_id' => 'required|exists:tugas,id',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'status' => 'nullable|string',
+            'status' => ['nullable', Rule::enum(Status::class)->only(Status::taskCases())],
             'deadline' => 'nullable|date',
         ]);
+        $validated['status'] = $validated['status'] ?? Status::BELUM->value;
         $todo->update($validated);
         return redirect()->route('tugas.show', $todo->tugas_id)->with('success', 'Todo berhasil diupdate!');
     }

@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Casts\NormalizedEnumCast;
+use App\Enums\DayOfWeek;
 use App\Support\ScheduleTime;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +19,7 @@ class MataKuliah extends Model
     protected function casts(): array
     {
         return [
+            'hari' => NormalizedEnumCast::class . ':' . DayOfWeek::class,
             'is_active' => 'boolean',
         ];
     }

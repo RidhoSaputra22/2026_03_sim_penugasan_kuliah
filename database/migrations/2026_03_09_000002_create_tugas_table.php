@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Status;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->string('judul');
             $table->text('deskripsi')->nullable();
             $table->dateTime('deadline');
-                $table->enum('status', array_column(\App\Enums\Status::cases(), 'value'))->default(\App\Enums\Status::BELUM);
+            $table->enum('status', Status::list())->default(Status::BELUM->value);
             $table->unsignedTinyInteger('progress')->default(0);
             $table->timestamps();
         });

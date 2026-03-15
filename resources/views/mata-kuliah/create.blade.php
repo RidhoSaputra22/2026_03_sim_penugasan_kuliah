@@ -23,14 +23,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-ui.input name="ruangan" label="Ruangan" placeholder="Contoh: Lab 3" :required="true" />
                 <x-ui.select name="hari" label="Hari" :searchable="false" placeholder="Pilih hari" :required="true"
-                    :options="[
-                        'Senin' => 'Senin',
-                        'Selasa' => 'Selasa',
-                        'Rabu' => 'Rabu',
-                        'Kamis' => 'Kamis',
-                        'Jumat' => 'Jumat',
-                        'Sabtu' => 'Sabtu',
-                    ]" />
+                    :options="\App\Enums\DayOfWeek::academicOptions()" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

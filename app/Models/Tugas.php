@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Casts\NormalizedEnumCast;
 use App\Enums\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ class Tugas extends Model
     ];
 
     protected $casts = [
-        'status' => Status::class,
+        'status' => NormalizedEnumCast::class . ':' . Status::class,
     ];
 
 

@@ -21,8 +21,9 @@
             <x-ui.textarea name="deskripsi" label="Deskripsi"
                 :value="old('deskripsi', $todo->deskripsi)" :error="$errors->first('deskripsi')" />
 
-            <x-ui.input name="status" label="Status"
-                :value="old('status', $todo->status?->value ?? (string) $todo->status)" :error="$errors->first('status')" />
+            <x-ui.select name="status" label="Status" :searchable="false" placeholder="Pilih status"
+                :options="\App\Enums\Status::taskOptions()"
+                :value="old('status', optional($todo->status)->value ?? (string) $todo->status)" :error="$errors->first('status')" />
 
             <x-ui.input name="deadline" type="datetime-local" label="Deadline"
                 :value="old('deadline', $todo->deadline ? date('Y-m-d\\TH:i', strtotime($todo->deadline)) : '')"

@@ -1,4 +1,9 @@
 <x-layouts.app title="Daftar Todo">
+    @php
+        $statusLabel = fn ($status) => $status instanceof \App\Enums\Status
+            ? $status->label()
+            : (\App\Enums\Status::tryFrom((string) $status)?->label() ?? (string) $status);
+    @endphp
     <div class="container">
         <h2>Daftar Todo</h2>
         @if(isset($tugasId))
@@ -17,7 +22,7 @@
                 @foreach($todos as $todo)
                 <tr>
                     <td>{{ $todo->judul }}</td>
-                    <td>{{ $todo->status }}</td>
+                    <td>{{ $statusLabel($todo->status) }}</td>
                     <td>{{ $todo->deadline }}</td>
                     <td>
                         <a href="{{ route('todo.show', $todo->id) }}" class="btn btn-info btn-sm">Lihat</a>

@@ -57,12 +57,12 @@
                 </div>
             </x-ui.card>
             @php
-                $dayOfWeek = \App\Enums\DayOfWeek::toArray();
-
+                $today = \App\Enums\DayOfWeek::fromIsoDayNumber((int) date('N'))->value;
+                $progressStatus = \App\Enums\Status::PROGRESS->value;
             @endphp
             <x-ui.card title="Jadwal Hari Ini">
                 <div class="space-y-2" x-data="{
-                    today: '{{ $dayOfWeek[date('N') - 1] }}',
+                    today: '{{ $today }}',
                     jadwalHariIni() {
                         return weekSchedule.filter(j => j.hari === this.today);
                     }
@@ -100,7 +100,7 @@
                                 </div>
                             </div>
                             <div class="badge badge-xs sm:badge-sm"
-                                :class="d.status === 'progress' ? 'badge-warning' : 'badge-error'"
+                                :class="d.status === '{{ $progressStatus }}' ? 'badge-warning' : 'badge-error'"
                                 x-text="d.progress + '%'">
                             </div>
                         </div>

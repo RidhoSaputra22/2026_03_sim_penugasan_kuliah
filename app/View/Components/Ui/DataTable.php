@@ -2,6 +2,7 @@
 
 namespace App\View\Components\Ui;
 
+use BackedEnum;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
@@ -134,6 +135,12 @@ class DataTable extends Component
     {
         $value = data_get($row, $field);
         $format = $this->formats[$field] ?? null;
+
+        if ($value instanceof \UnitEnum) {
+            $value = method_exists($value, 'label')
+                ? $value->label()
+                : ($value instanceof BackedEnum ? $value->value : $value->name);
+        }
 
         if (is_null($value) || $value === '') {
             return '-';

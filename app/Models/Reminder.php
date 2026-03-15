@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Casts\NormalizedEnumCast;
+use App\Enums\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +14,7 @@ class Reminder extends Model
     ];
 
     protected $casts = [
-        'status'=> \App\Enums\Status::class,
+        'status'=> NormalizedEnumCast::class . ':' . Status::class,
     ];
 
     public function tugas()

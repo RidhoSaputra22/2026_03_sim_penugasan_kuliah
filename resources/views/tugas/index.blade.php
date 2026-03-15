@@ -120,7 +120,7 @@
             </div>
             <div class="w-full">
                 <x-ui.select name="status" label="Status" :searchable="false" placeholder="Semua Status"
-                    :options="collect(App\Enums\Status::cases())->mapWithKeys(fn($s) => [$s->value => $s->label()])->toArray()"
+                    :options="App\Enums\Status::options()"
                     :value="request('status')" />
             </div>
             <div class="flex-1 min-w-[180px]">
@@ -150,9 +150,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             @foreach($tugas as $item)
                 @php
-
-
-                    $statusBadge = match($item->status) {
+                    $statusValue = $item->status instanceof Status ? $item->status->value : (string) $item->status;
+                    $statusEnum = $item->status instanceof Status ? $item->status : Status::tryFrom($statusValue);
+                    $statusBadge = match($statusEnum) {
                         Status::BELUM => 'error',
                         Status::PROGRESS => 'warning',
                         Status::SELESAI => 'success',
@@ -160,7 +160,7 @@
                         Status::CANCELLED => 'ghost',
                         default => 'ghost',
                     };
-                    $statusLabel = $item->status instanceof Status ? $item->status->label() : $item->status;
+                    $statusLabel = $statusEnum?->label() ?? $statusValue;
                     $prioritasBadge = match($item->prioritas ?? '') {
                         'tinggi' => 'error',
                         'sedang' => 'warning',
@@ -168,7 +168,7 @@
                         default => 'ghost',
                     };
                     $daysLeft = now()->diffInDays($item->deadline, false);
-                    $isOverdue = $daysLeft < 0 && ($item->status instanceof Status ? $item->status !== Status::SELESAI : $item->status !== 'selesai');
+                    $isOverdue = $daysLeft < 0 && $statusValue !== Status::SELESAI->value;
                 @endphp
                 <x-ui.card class="{{ $isOverdue ? 'border-l-4 border-l-error' : '' }}" :href="route('tugas.show', $item->id)">
                     <div class="flex items-start justify-between gap-2">
@@ -211,7 +211,7 @@
                         </span>
                         @if($isOverdue)
                             <span class="text-error font-medium">Terlambat!</span>
-                        @elseif(($item->status instanceof Status ? $item->status !== Status::SELESAI : $item->status !== 'selesai'))
+                        @elseif($statusValue !== Status::SELESAI->value)
                             <span class="{{ $daysLeft <= 3 ? 'text-warning' : 'text-base-content/50' }}">
                                 {{ ceil($daysLeft) }} hari lagi
                             </span>

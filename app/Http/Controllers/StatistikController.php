@@ -7,7 +7,7 @@ use App\Models\Todo;
 use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use \App\Enums\Status;
+use App\Enums\Status;
 
 class StatistikController extends Controller
 {
@@ -86,7 +86,7 @@ class StatistikController extends Controller
                 'deadline' => Carbon::parse($t->deadline)->format('d M'),
                 'days_left' => now()->diffInDays($t->deadline, false),
                 'progress' => $t->progress,
-                'status' => $t->status,
+                'status' => $t->status instanceof Status ? $t->status->value : (string) $t->status,
             ]);
 
         // Todo completion stats

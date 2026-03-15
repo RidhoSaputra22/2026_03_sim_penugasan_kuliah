@@ -21,8 +21,9 @@
             <x-ui.textarea name="deskripsi" label="Deskripsi"
                 :value="old('deskripsi')" :error="$errors->first('deskripsi')" />
 
-            <x-ui.input name="status" label="Status"
-                :value="old('status', 'pending')" :error="$errors->first('status')" />
+            <x-ui.select name="status" label="Status" :searchable="false" placeholder="Pilih status"
+                :options="\App\Enums\Status::taskOptions()"
+                :value="old('status', \App\Enums\Status::BELUM->value)" :error="$errors->first('status')" />
 
             <x-ui.input name="deadline" type="datetime-local" label="Deadline"
                 :value="old('deadline')" :error="$errors->first('deadline')" />

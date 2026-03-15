@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\EnumInput;
 use App\Support\ScheduleTime;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
@@ -48,7 +48,7 @@ class ImportExportController extends Controller
         }
 
         // Ambil langsung dari atribut model
-        return $model->{ $column} ?? '-';
+        return EnumInput::displayValue($model->{$column} ?? '-');
     }
 
 
@@ -276,6 +276,8 @@ class ImportExportController extends Controller
                         unset($data[$sourceCol]);
                     }
                 }
+
+                $data = EnumInput::normalizeAttributes($modelClass, $data);
 
                 // Validasi required fields
                 $missingFields = [];

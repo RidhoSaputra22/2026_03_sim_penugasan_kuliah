@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DayOfWeek;
+use App\Enums\Status;
 use App\Models\Event;
 use App\Models\MataKuliah;
 use App\Models\Tugas;
-use \App\Enums\Status;
 
 class KalenderController extends Controller
 {
@@ -14,19 +14,25 @@ class KalenderController extends Controller
     {
         $user = auth()->user();
 
-        $jadwalEvents = MataKuliah::all()->map(fn($mk) => [
+        $jadwalEvents = MataKuliah::all()->map(function ($mk) {
+            $hari = $mk->hari instanceof DayOfWeek
+                ? $mk->hari
+                : DayOfWeek::from((string) $mk->hari);
+
+            return [
             'id'          => 'jadwal-' . $mk->id,
             'title'       => $mk->nama,
-            'daysOfWeek'  => [DayOfWeek::from($mk->hari)->toFullCalendar()],
+            'daysOfWeek'  => [$hari->toFullCalendar()],
             'startTime'   => $mk->jam_mulai,
             'endTime'     => $mk->jam_selesai,
             'extendedProps' => [
                 'type'    => 'jadwal',
-                'hari'    => $mk->hari,
+                'hari'    => $hari->value,
                 'ruangan' => $mk->ruangan,
                 'dosen'   => $mk->dosen,
             ],
-        ]);
+        ];
+        });
 
         $deadlineEvents = Tugas::where('user_id', $user->id)
             ->whereIn('status', [Status::BELUM, Status::PROGRESS])
@@ -40,7 +46,7 @@ class KalenderController extends Controller
                 'extendedProps' => [
                     'type'        => 'deadline',
                     'mata_kuliah' => $t->mataKuliah->nama ?? '-',
-                    'status'      => $t->status,
+                    'status'      => $t->status instanceof Status ? $t->status->value : (string) $t->status,
                     'progress'    => $t->progress,
                 ],
             ]);

@@ -1,3 +1,14 @@
+@php
+    $statusLabels = \App\Enums\Status::options();
+    $statusColors = [
+        \App\Enums\Status::BELUM->value => 'oklch(0.7 0.18 25)',
+        \App\Enums\Status::PROGRESS->value => 'oklch(0.8 0.17 85)',
+        \App\Enums\Status::SELESAI->value => 'oklch(0.7 0.17 145)',
+        \App\Enums\Status::COMPLETED->value => 'oklch(0.7 0.17 145)',
+        \App\Enums\Status::CANCELLED->value => 'oklch(0.55 0 0)',
+    ];
+@endphp
+
 <x-layouts.app title="Statistik">
     <x-slot:header>
         <x-layouts.page-header title="Statistik" description="Analisis produktivitas dan perkembangan tugas Anda" />
@@ -216,12 +227,8 @@
 
             // Status Chart (Donut)
             const statusData = @json($tugasPerStatus);
-            const statusLabels = { belum: 'Belum', progress: 'Progress', selesai: 'Selesai' };
-            const statusColors = {
-                belum: 'oklch(0.7 0.18 25)',
-                progress: 'oklch(0.8 0.17 85)',
-                selesai: 'oklch(0.7 0.17 145)'
-            };
+            const statusLabels = @json($statusLabels);
+            const statusColors = @json($statusColors);
 
             new Chart(document.getElementById('statusChart'), {
                 type: 'doughnut',

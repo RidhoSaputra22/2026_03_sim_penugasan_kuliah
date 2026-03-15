@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Status;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tugas_id')->constrained('tugas')->onDelete('cascade');
             $table->dateTime('tanggal_notifikasi');
-                            $table->enum('status', array_column(\App\Enums\Status::cases(), 'value'))->default(\App\Enums\Status::BELUM);
+            $table->enum('status', Status::list())->default(Status::BELUM->value);
 
             $table->timestamps();
         });

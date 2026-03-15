@@ -28,14 +28,8 @@
                 <x-ui.input name="ruangan" label="Ruangan" placeholder="Contoh: Lab 3" :required="true"
                     :value="$mataKuliah->ruangan" />
                 <x-ui.select name="hari" label="Hari" :searchable="false" placeholder="Pilih hari" :required="true"
-                    :options="[
-                        'Senin' => 'Senin',
-                        'Selasa' => 'Selasa',
-                        'Rabu' => 'Rabu',
-                        'Kamis' => 'Kamis',
-                        'Jumat' => 'Jumat',
-                        'Sabtu' => 'Sabtu',
-                    ]" :value="$mataKuliah->hari" />
+                    :options="\App\Enums\DayOfWeek::academicOptions()"
+                    :value="optional($mataKuliah->hari)->value ?? $mataKuliah->hari" />
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

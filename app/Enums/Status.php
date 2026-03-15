@@ -9,28 +9,53 @@ enum Status: string
     case PROGRESS = 'PROGRESS';
     case COMPLETED = 'COMPLETED';
     case CANCELLED = 'CANCELLED';
-    /**
-     * Get all values as array
-     */
-    public static function list(): array
+
+    public static function list(?array $cases = null): array
     {
-        return array_column(self::cases(), 'value');
+        return array_map(
+            static fn (self $case) => $case->value,
+            $cases ?? self::cases()
+        );
     }
 
-    /**
-     * Validate if value is a valid status
-     */
+    public static function taskCases(): array
+    {
+        return [
+            self::BELUM,
+            self::PROGRESS,
+            self::SELESAI,
+        ];
+    }
+
+    public static function taskValues(): array
+    {
+        return self::list(self::taskCases());
+    }
+
+    public static function options(?array $cases = null): array
+    {
+        $options = [];
+
+        foreach ($cases ?? self::cases() as $case) {
+            $options[$case->value] = $case->label();
+        }
+
+        return $options;
+    }
+
+    public static function taskOptions(): array
+    {
+        return self::options(self::taskCases());
+    }
+
     public static function isValid(string $value): bool
     {
         return in_array($value, self::list(), true);
     }
 
-    /**
-     * Get human readable label
-     */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SELESAI => 'Selesai',
             self::BELUM => 'Belum',
             self::PROGRESS => 'Progress',

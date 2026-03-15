@@ -24,7 +24,7 @@
             ? $tugas->todos->map(fn($todo) => [
                 'judul' => $todo->judul,
                 'deskripsi' => $todo->deskripsi,
-                'status' => $todo->status,
+                'status' => optional($todo->status)->value ?? (string) $todo->status,
                 'deadline' => $todo->deadline ? \Carbon\Carbon::parse($todo->deadline)->format('Y-m-d') : '',
             ])->toArray()
             : [[
@@ -95,8 +95,8 @@
             :value="optional($tugas)->deadline ? \Carbon\Carbon::parse(optional($tugas)->deadline)->format('Y-m-d') : old('deadline') ?? ''" />
         <x-ui.select name="status" label="Status" :searchable="false" :required="true"
             placeholder="Pilih status"
-            :options="collect(\App\Enums\Status::cases())->mapWithKeys(fn($status) => [$status->value => $status->label()])->toArray()"
-            :value="optional($tugas)->status?->value ?? old('status', \App\Enums\Status::BELUM->value)" />
+            :options="\App\Enums\Status::taskOptions()"
+            :value="optional(optional($tugas)->status)->value ?? old('status', \App\Enums\Status::BELUM->value)" />
         <x-ui.input name="progress" label="Progress (%)" type="number" placeholder="0" :required="true"
             :value="optional($tugas)->progress ?? old('progress', 0)" />
     </div>
@@ -159,7 +159,7 @@
                     selectedAttendanceId: config.selectedAttendanceId ? String(config.selectedAttendanceId) : '',
                     attendanceOptions: Array.isArray(config.attendanceOptions) ? config.attendanceOptions : [],
                     todos: Array.isArray(config.todos) ? config.todos : [],
-                    openStatus: config.openStatus || 'BELUM',
+                    openStatus: config.openStatus || @js(\App\Enums\Status::BELUM->value),
 
                     init() {
                         if (this.todos.length === 0) {

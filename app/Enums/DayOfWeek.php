@@ -2,54 +2,86 @@
 
 namespace App\Enums;
 
+use InvalidArgumentException;
+
 enum DayOfWeek: string
 {
-    case MONDAY = 'SENIN';
-    case TUESDAY = 'SELASA';
-    case WEDNESDAY = 'RABU';
-    case THURSDAY = 'KAMIS';
-    case FRIDAY = 'JUMAT';
-    case SATURDAY = 'SABTU';
-    case SUNDAY = 'MINGGU';
-    /**
-     * Get all values as array
-     */
-    public static function list(): array
+    case MONDAY = 'Senin';
+    case TUESDAY = 'Selasa';
+    case WEDNESDAY = 'Rabu';
+    case THURSDAY = 'Kamis';
+    case FRIDAY = 'Jumat';
+    case SATURDAY = 'Sabtu';
+    case SUNDAY = 'Minggu';
+
+    public static function list(?array $cases = null): array
     {
-        return array_column(self::cases(), 'value');
+        return array_map(
+            static fn (self $case) => $case->value,
+            $cases ?? self::cases()
+        );
     }
 
-    /**
-     * Validate if value is a valid day
-     */
+    public static function academicCases(): array
+    {
+        return [
+            self::MONDAY,
+            self::TUESDAY,
+            self::WEDNESDAY,
+            self::THURSDAY,
+            self::FRIDAY,
+            self::SATURDAY,
+        ];
+    }
+
+    public static function academicList(): array
+    {
+        return self::list(self::academicCases());
+    }
+
+    public static function options(?array $cases = null): array
+    {
+        $options = [];
+
+        foreach ($cases ?? self::cases() as $case) {
+            $options[$case->value] = $case->label();
+        }
+
+        return $options;
+    }
+
+    public static function academicOptions(): array
+    {
+        return self::options(self::academicCases());
+    }
+
+    public static function fromIsoDayNumber(int $day): self
+    {
+        return match ($day) {
+            1 => self::MONDAY,
+            2 => self::TUESDAY,
+            3 => self::WEDNESDAY,
+            4 => self::THURSDAY,
+            5 => self::FRIDAY,
+            6 => self::SATURDAY,
+            7 => self::SUNDAY,
+            default => throw new InvalidArgumentException('Nomor hari ISO harus bernilai 1 sampai 7.'),
+        };
+    }
+
     public static function isValid(string $value): bool
     {
         return in_array($value, self::list(), true);
     }
 
-    /**
-     * Get human readable label
-     */
     public function label(): string
     {
-        return match($this) {
-            self::MONDAY => 'Senin',
-            self::TUESDAY => 'Selasa',
-            self::WEDNESDAY => 'Rabu',
-            self::THURSDAY => 'Kamis',
-            self::FRIDAY => 'Jumat',
-            self::SATURDAY => 'Sabtu',
-            self::SUNDAY => 'Minggu',
-        };
+        return $this->value;
     }
 
-
-    /**
-     * Get short label (e.g. Sen, Sel)
-     */
     public function short(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MONDAY => 'Sen',
             self::TUESDAY => 'Sel',
             self::WEDNESDAY => 'Rab',
@@ -60,12 +92,9 @@ enum DayOfWeek: string
         };
     }
 
-    /**
-     * Convert to FullCalendar day-of-week index (0=Sun, 1=Mon, ..., 6=Sat)
-     */
     public function toFullCalendar(): int
     {
-        return match($this) {
+        return match ($this) {
             self::SUNDAY => 0,
             self::MONDAY => 1,
             self::TUESDAY => 2,
@@ -76,12 +105,8 @@ enum DayOfWeek: string
         };
     }
 
-    // convert to array
     public static function toArray(): array
     {
-        return array_map(fn($case) => $case->value, self::cases());
+        return self::list();
     }
-
-
-
 }

@@ -9,9 +9,23 @@ enum AttendanceStatus: string
     case SAKIT = 'sakit';
     case ALPHA = 'alpha';
 
-    public static function list(): array
+    public static function list(?array $cases = null): array
     {
-        return array_column(self::cases(), 'value');
+        return array_map(
+            static fn (self $case) => $case->value,
+            $cases ?? self::cases()
+        );
+    }
+
+    public static function options(?array $cases = null): array
+    {
+        $options = [];
+
+        foreach ($cases ?? self::cases() as $case) {
+            $options[$case->value] = $case->label();
+        }
+
+        return $options;
     }
 
     public static function isValid(string $value): bool
