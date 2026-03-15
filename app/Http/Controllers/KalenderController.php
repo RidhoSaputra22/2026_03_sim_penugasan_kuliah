@@ -60,7 +60,15 @@ class KalenderController extends Controller
             'color' => $e->color ?? '#2196f3',
         ]);
 
-        $events = $jadwalEvents->merge($deadlineEvents)->merge($customEvents)->values();
+
+        // dd($jadwalEvents);
+
+        $events = $jadwalEvents
+            ->toBase()
+            ->merge($deadlineEvents)
+            ->merge($customEvents)
+            ->values();
+
 
         // Sidebar stats
         $totalMataKuliah = MataKuliah::count();

@@ -8,6 +8,9 @@
         \App\Enums\AttendanceStatus::SAKIT->value => 'warning',
         \App\Enums\AttendanceStatus::ALPHA->value => 'error',
     ];
+    $quickWizardOpen = session()->has('focus_wizard_step') || $errors->quickTask->any() || $errors->quickTodo->any();
+    $quickWizardInitialStep = session('focus_wizard_step')
+        ?: ($errors->quickTodo->any() ? 2 : 1);
     $attendanceCalendarEvents = collect($absensiPayload)
         ->map(function (array $attendance) use ($attendanceColorMap) {
             $meetingLabel = $attendance['meeting_number']
@@ -54,8 +57,8 @@
         'progressStatus' => \App\Enums\Status::PROGRESS->value,
         'openStatus' => \App\Enums\Status::BELUM->value,
         'workspaceTab' => 'action',
-        'openTaskForm' => $errors->quickTask->any(),
-        'openTodoForm' => $errors->quickTodo->any(),
+        'openQuickWizard' => $quickWizardOpen,
+        'quickWizardStep' => $quickWizardInitialStep,
         'attendanceSaveUrl' => route('mata-kuliah.focus-attendance.save', $mataKuliah),
         'attendanceCalendarSyncEvent' => 'attendance-calendar-sync',
         'attendanceCalendarSelectionEvent' => 'attendance-calendar-selection-sync',
@@ -109,15 +112,15 @@
         class="space-y-6 pb-28 text-[13px] sm:pb-24 sm:text-base lg:pb-0">
         @include('mata-kuliah.partials.show.overview')
 
-        <div class="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
-            @include('mata-kuliah.partials.show.task-column')
-            @include('mata-kuliah.partials.show.focus-hub')
-        </div>
+	        <div class="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
+	            @include('mata-kuliah.partials.show.task-column')
+	            @include('mata-kuliah.partials.show.focus-hub')
+	        </div>
 
-        @include('mata-kuliah.partials.show.mobile-fab')
-        @include('mata-kuliah.partials.show.task-modal')
-        @include('mata-kuliah.partials.show.attendance-modal')
-    </div>
+	        @include('mata-kuliah.partials.show.mobile-modals')
+	        @include('mata-kuliah.partials.show.mobile-fab')
+	        @include('mata-kuliah.partials.show.attendance-modal')
+	    </div>
 
     @push('scripts')
         <script>
@@ -133,9 +136,21 @@
                     mobileFabOpen: false,
                     mobileFabBranch: null,
                     panels: {
-                        task: Boolean(config.openTaskForm),
-                        todo: Boolean(config.openTodoForm),
+                        wizard: Boolean(config.openQuickWizard),
                     },
+                    quickWizardStep: Number(config.quickWizardStep || 1),
+                    quickTaskMode: 'create', // 'create' | 'edit'
+                    quickTaskEditingId: null,
+                    quickTaskSubmitting: false,
+                    quickTodoSubmitting: false,
+                    quickTodoMode: 'create', // 'create' | 'edit'
+                    quickTodoEditingId: null,
+                    todoDeletingId: null,
+                    quickTaskErrors: {},
+                    quickTodoErrors: {},
+                    quickNotice: null,
+                    taskDeleting: false,
+                    taskEditorNotice: null,
                     quickItemTitle: '',
                     quickItemType: 'follow-up',
                     quickItems: [],
@@ -191,6 +206,26 @@
 
                         this.dispatchAttendanceCalendarSync();
                         this.$nextTick(() => this.dispatchAttendanceCalendarSelection(this.attendanceForm.tanggal, true));
+
+                        this.$watch('selectedTaskId', () => {
+                            if (this.quickTodoMode === 'edit') {
+                                this.cancelQuickTodoEdit();
+                            }
+
+                            if (this.quickTaskMode !== 'edit') {
+                                return;
+                            }
+
+                            this.quickTaskErrors = {};
+
+                            if (!this.selectedTask) {
+                                this.cancelQuickTaskEdit();
+                                return;
+                            }
+
+                            this.quickTaskEditingId = Number(this.selectedTask.id);
+                            this.$nextTick(() => this.prefillQuickTaskForm(this.selectedTask));
+                        });
                     },
 
                     get filteredTasks() {
@@ -204,6 +239,16 @@
 
                     get selectedTask() {
                         return this.tasks.find((task) => Number(task.id) === Number(this.selectedTaskId)) || null;
+                    },
+
+                    get editingTodo() {
+                        if (this.quickTodoMode !== 'edit' || !this.selectedTask) {
+                            return null;
+                        }
+
+                        return (this.selectedTask.todos || []).find((todo) =>
+                            Number(todo.id) === Number(this.quickTodoEditingId)
+                        ) || null;
                     },
 
                     get selectedAttendance() {
@@ -220,8 +265,52 @@
                         });
                     },
 
+                    normalizeWizardStep(step = 1) {
+                        return Math.max(1, Math.min(2, Number(step) || 1));
+                    },
+
+                    setQuickWizardStep(step = 1) {
+                        this.quickWizardStep = this.normalizeWizardStep(step);
+                    },
+
+                    openQuickWizard(step = 1) {
+                        this.panels.wizard = true;
+                        this.setQuickWizardStep(step);
+                    },
+
+                    toggleQuickWizard(step = 1) {
+                        const targetStep = this.normalizeWizardStep(step);
+
+                        if (!this.panels.wizard) {
+                            this.openQuickWizard(targetStep);
+                            return;
+                        }
+
+                        if (this.quickWizardStep === targetStep) {
+                            this.panels.wizard = false;
+                            return;
+                        }
+
+                        this.setQuickWizardStep(targetStep);
+                    },
+
                     togglePanel(name) {
-                        this.panels[name] = !this.panels[name];
+                        if (name === 'todo') {
+                            this.toggleQuickWizard(2);
+                            return;
+                        }
+
+                        this.toggleQuickWizard(1);
+                    },
+
+                    openQuickTaskCreate() {
+                        this.cancelQuickTaskEdit();
+                        this.activateWorkspaceTab('action', 'task');
+                    },
+
+                    openQuickTodoCreate(clearNotice = true) {
+                        this.cancelQuickTodoEdit(clearNotice);
+                        this.activateWorkspaceTab('action', 'todo');
                     },
 
                     toggleMobileFab() {
@@ -233,7 +322,7 @@
                         }
 
                         if (!this.mobileFabBranch) {
-                            this.mobileFabBranch = 'panel';
+                            this.mobileFabBranch = 'task';
                         }
                     },
 
@@ -261,11 +350,33 @@
                         window.location.href = url;
                     },
 
+                    isMobile() {
+                        return window.matchMedia && window.matchMedia('(max-width: 639px)').matches;
+                    },
+
                     activateWorkspaceTab(tab, panel = null) {
                         this.workspaceTab = tab;
 
-                        if (panel && this.panels[panel] !== undefined) {
-                            this.panels[panel] = true;
+                        if (this.isMobile()) {
+                            if (panel === 'todo') {
+                                this.setQuickWizardStep(2);
+                                this.showDialog('mobile-todo-modal');
+                                return;
+                            }
+
+                            if (panel === 'task' || panel === 'wizard') {
+                                this.setQuickWizardStep(1);
+                                this.showDialog('mobile-task-modal');
+                                return;
+                            }
+
+                            return;
+                        }
+
+                        if (panel === 'todo') {
+                            this.openQuickWizard(2);
+                        } else if (panel === 'task' || panel === 'wizard') {
+                            this.openQuickWizard(1);
                         }
 
                         this.mobileFabBranch = tab === 'parking' ? 'panel' : this.mobileFabBranch;
@@ -660,6 +771,557 @@
                         }, {});
                     },
 
+                    csrfToken() {
+                        return document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    },
+
+                    setQuickNotice(message, type = 'success') {
+                        this.quickNotice = {
+                            message,
+                            type,
+                        };
+                    },
+
+                    clearQuickFeedback() {
+                        this.quickTaskErrors = {};
+                        this.quickTodoErrors = {};
+                        this.quickNotice = null;
+                    },
+
+                    resolveQuickTaskFormEl() {
+                        if (this.isMobile()) {
+                            return this.$refs.quickTaskFormMobile || this.$refs.quickTaskForm || null;
+                        }
+
+                        return this.$refs.quickTaskForm || this.$refs.quickTaskFormMobile || null;
+                    },
+
+                    resolveQuickTodoFormEl() {
+                        if (this.isMobile()) {
+                            return this.$refs.quickTodoFormMobile || this.$refs.quickTodoForm || null;
+                        }
+
+                        return this.$refs.quickTodoForm || this.$refs.quickTodoFormMobile || null;
+                    },
+
+                    prefillQuickTaskForm(task) {
+                        const form = this.resolveQuickTaskFormEl();
+
+                        if (!form || !task) {
+                            return;
+                        }
+
+                        const setValue = (name, value) => {
+                            const field = form.querySelector(`[name="${name}"]`);
+                            if (!field) return;
+
+                            field.value = value ?? '';
+                            field.dispatchEvent(new Event('input', {
+                                bubbles: true,
+                            }));
+                            field.dispatchEvent(new Event('change', {
+                                bubbles: true,
+                            }));
+                        };
+
+                        setValue('task_judul', task.title || '');
+                        setValue('task_deskripsi', task.description || '');
+                        setValue('task_deadline', task.deadline_sort || this.today());
+                        setValue('task_prioritas', task.priority || 'sedang');
+                        setValue('task_catatan', task.note || '');
+                    },
+
+                    resetQuickTaskForm() {
+                        const form = this.resolveQuickTaskFormEl();
+                        if (!form) return;
+
+                        form.reset();
+                        this.quickTaskErrors = {};
+                    },
+
+                    cancelQuickTaskEdit() {
+                        this.quickTaskMode = 'create';
+                        this.quickTaskEditingId = null;
+                        this.quickTaskErrors = {};
+                        this.quickNotice = null;
+
+                        this.$nextTick(() => this.resetQuickTaskForm());
+                    },
+
+                    editSelectedTaskInWizard() {
+                        const task = this.selectedTask;
+
+                        if (!task) {
+                            return;
+                        }
+
+                        this.quickTaskMode = 'edit';
+                        this.quickTaskEditingId = Number(task.id);
+                        this.quickTaskErrors = {};
+                        this.quickNotice = null;
+                        this.taskEditorNotice = null;
+
+                        this.activateWorkspaceTab('action', 'task');
+
+                        this.$nextTick(() => this.prefillQuickTaskForm(task));
+                    },
+
+                    prefillQuickTodoForm(todo) {
+                        const form = this.resolveQuickTodoFormEl();
+
+                        if (!form || !todo) {
+                            return;
+                        }
+
+                        const setValue = (name, value) => {
+                            const field = form.querySelector(`[name="${name}"]`);
+                            if (!field) return;
+
+                            field.value = value ?? '';
+                            field.dispatchEvent(new Event('input', {
+                                bubbles: true,
+                            }));
+                            field.dispatchEvent(new Event('change', {
+                                bubbles: true,
+                            }));
+                        };
+
+                        setValue('todo_judul', todo.title || '');
+                        setValue('todo_deskripsi', todo.description || '');
+                        setValue('todo_deadline', todo.deadline_sort || '');
+                    },
+
+                    resetQuickTodoForm() {
+                        const form = this.resolveQuickTodoFormEl();
+                        if (!form) return;
+
+                        ['todo_judul', 'todo_deskripsi', 'todo_deadline'].forEach((name) => {
+                            const field = form.querySelector(`[name="${name}"]`);
+                            if (!field) return;
+
+                            field.value = '';
+                            field.dispatchEvent(new Event('input', {
+                                bubbles: true,
+                            }));
+                            field.dispatchEvent(new Event('change', {
+                                bubbles: true,
+                            }));
+                        });
+
+                        this.quickTodoErrors = {};
+                    },
+
+                    cancelQuickTodoEdit(clearNotice = true) {
+                        this.quickTodoMode = 'create';
+                        this.quickTodoEditingId = null;
+                        this.quickTodoErrors = {};
+
+                        if (clearNotice) {
+                            this.quickNotice = null;
+                        }
+
+                        this.$nextTick(() => this.resetQuickTodoForm());
+                    },
+
+                    editTodoInWizard(todo) {
+                        if (!todo) {
+                            return;
+                        }
+
+                        this.quickTodoMode = 'edit';
+                        this.quickTodoEditingId = Number(todo.id);
+                        this.quickTodoErrors = {};
+                        this.quickNotice = null;
+                        this.taskEditorNotice = null;
+
+                        this.activateWorkspaceTab('action', 'todo');
+
+                        this.$nextTick(() => this.prefillQuickTodoForm(todo));
+                    },
+
+                    async deleteTodo(todo) {
+                        if (!todo || !todo.delete_url) {
+                            return;
+                        }
+
+                        if (!window.confirm('Hapus checklist ini?')) {
+                            return;
+                        }
+
+                        this.todoDeletingId = Number(todo.id);
+                        this.taskEditorNotice = null;
+
+                        try {
+                            const response = await fetch(todo.delete_url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': this.csrfToken(),
+                                },
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok || !data.success) {
+                                const message = data.message || 'Gagal menghapus checklist.';
+                                this.taskEditorNotice = {
+                                    type: 'error',
+                                    message,
+                                };
+                                this.setQuickNotice(message, 'error');
+                                return;
+                            }
+
+                            this.upsertTask(data.task);
+                            this.selectedTaskId = Number(data.task.id);
+
+                            if (this.quickTodoMode === 'edit' && Number(this.quickTodoEditingId) === Number(todo.id)) {
+                                this.cancelQuickTodoEdit(false);
+                            }
+
+                            const message = data.message || 'Checklist berhasil dihapus.';
+                            this.taskEditorNotice = {
+                                type: 'success',
+                                message,
+                            };
+                            this.setQuickNotice(message);
+                        } catch (error) {
+                            const message = 'Terjadi kesalahan saat menghapus checklist.';
+                            this.taskEditorNotice = {
+                                type: 'error',
+                                message,
+                            };
+                            this.setQuickNotice(message, 'error');
+                        } finally {
+                            this.todoDeletingId = null;
+                        }
+                    },
+
+                    taskStatusWeight(status) {
+                        if (status === this.openStatus) {
+                            return 1;
+                        }
+
+                        if (status === this.progressStatus) {
+                            return 2;
+                        }
+
+                        if (status === this.doneStatus) {
+                            return 3;
+                        }
+
+                        return 4;
+                    },
+
+                    sortTasks() {
+                        this.tasks = [...this.tasks].sort((left, right) => {
+                            const leftWeight = this.taskStatusWeight(left.status);
+                            const rightWeight = this.taskStatusWeight(right.status);
+
+                            if (leftWeight !== rightWeight) {
+                                return leftWeight - rightWeight;
+                            }
+
+                            return String(left.deadline_sort || '').localeCompare(String(right.deadline_sort || ''));
+                        });
+                    },
+
+                    upsertTask(task) {
+                        if (!task || !task.id) {
+                            return;
+                        }
+
+                        const index = this.tasks.findIndex((entry) => Number(entry.id) === Number(task.id));
+
+                        if (index === -1) {
+                            this.tasks.unshift(task);
+                        } else {
+                            this.tasks.splice(index, 1, task);
+                        }
+
+                        this.sortTasks();
+                    },
+
+                    removeTaskById(id) {
+                        this.tasks = this.tasks.filter((entry) => Number(entry.id) !== Number(id));
+                    },
+
+                    async submitQuickTask(event) {
+                        this.quickTaskSubmitting = true;
+                        this.quickTaskErrors = {};
+                        this.quickNotice = null;
+
+                        const form = event.target;
+                        const formData = new FormData(form);
+                        const isEditing = this.quickTaskMode === 'edit';
+
+                        try {
+                            const toText = (value) => (value ?? '').toString();
+                            const trimmedOrNull = (value) => {
+                                const text = toText(value).trim();
+                                return text === '' ? null : text;
+                            };
+
+                            let response;
+
+                            if (isEditing) {
+                                const task = this.selectedTask;
+
+                                if (!task || !task.update_url) {
+                                    this.setQuickNotice('Pilih tugas terlebih dahulu sebelum mengedit.', 'error');
+                                    this.openQuickWizard(1);
+                                    return;
+                                }
+
+                                const payload = {
+                                    judul: toText(formData.get('task_judul')).trim(),
+                                    deskripsi: trimmedOrNull(formData.get('task_deskripsi')),
+                                    deadline: toText(formData.get('task_deadline')),
+                                    prioritas: toText(formData.get('task_prioritas')) || 'sedang',
+                                    catatan: trimmedOrNull(formData.get('task_catatan')),
+                                };
+
+                                response = await fetch(task.update_url, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': this.csrfToken(),
+                                    },
+                                    body: JSON.stringify(payload),
+                                });
+                            } else {
+                                response = await fetch(form.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': this.csrfToken(),
+                                    },
+                                    body: formData,
+                                });
+                            }
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                const normalized = this.normalizeValidationErrors(data.errors || {});
+
+                                if (isEditing) {
+                                    this.quickTaskErrors = {
+                                        task_judul: normalized.judul,
+                                        task_deskripsi: normalized.deskripsi,
+                                        task_deadline: normalized.deadline,
+                                        task_prioritas: normalized.prioritas,
+                                        task_catatan: normalized.catatan,
+                                    };
+                                } else {
+                                    this.quickTaskErrors = normalized;
+                                }
+
+                                const fallback = isEditing ? 'Gagal memperbarui tugas.' : 'Gagal menambahkan tugas.';
+                                this.setQuickNotice(data.message || fallback, 'error');
+                                this.openQuickWizard(1);
+                                return;
+                            }
+
+                            this.upsertTask(data.task);
+                            this.selectedTaskId = Number(data.task.id);
+                            const fallback = isEditing ? 'Tugas berhasil diperbarui.' : 'Tugas berhasil ditambahkan.';
+                            this.setQuickNotice(data.message || fallback);
+
+                            if (isEditing) {
+                                this.quickTaskMode = 'edit';
+                                this.quickTaskEditingId = Number(data.task.id);
+                                this.$nextTick(() => this.prefillQuickTaskForm(data.task));
+                                this.openQuickWizard(1);
+                                return;
+                            }
+
+                            form.reset();
+                            if (this.isMobile()) {
+                                this.setQuickWizardStep(2);
+                                this.closeDialog('mobile-task-modal');
+                                this.$nextTick(() => this.showDialog('mobile-todo-modal'));
+                                return;
+                            }
+
+                            this.openQuickWizard(2);
+                        } catch (error) {
+                            const fallback = isEditing
+                                ? 'Terjadi kesalahan saat memperbarui tugas.'
+                                : 'Terjadi kesalahan saat menambahkan tugas.';
+                            this.setQuickNotice(fallback, 'error');
+                        } finally {
+                            this.quickTaskSubmitting = false;
+                        }
+                    },
+
+                    async submitQuickTodo(event) {
+                        this.quickTodoSubmitting = true;
+                        this.quickTodoErrors = {};
+                        this.quickNotice = null;
+
+                        const form = event.target;
+                        const formData = new FormData(form);
+                        const isEditing = this.quickTodoMode === 'edit';
+
+                        try {
+                            const toText = (value) => (value ?? '').toString();
+                            const trimmedOrNull = (value) => {
+                                const text = toText(value).trim();
+                                return text === '' ? null : text;
+                            };
+
+                            let response;
+
+                            if (isEditing) {
+                                const todo = this.editingTodo;
+
+                                if (!todo || !todo.edit_url) {
+                                    this.setQuickNotice('Pilih checklist terlebih dahulu sebelum mengedit.', 'error');
+                                    this.openQuickWizard(2);
+                                    return;
+                                }
+
+                                const payload = {
+                                    judul: toText(formData.get('todo_judul')).trim(),
+                                    deskripsi: trimmedOrNull(formData.get('todo_deskripsi')),
+                                    deadline: trimmedOrNull(formData.get('todo_deadline')),
+                                };
+
+                                response = await fetch(todo.edit_url, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': this.csrfToken(),
+                                    },
+                                    body: JSON.stringify(payload),
+                                });
+                            } else {
+                                response = await fetch(form.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRF-TOKEN': this.csrfToken(),
+                                    },
+                                    body: formData,
+                                });
+                            }
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                const normalized = this.normalizeValidationErrors(data.errors || {});
+
+                                if (isEditing) {
+                                    this.quickTodoErrors = {
+                                        todo_judul: normalized.judul,
+                                        todo_deskripsi: normalized.deskripsi,
+                                        todo_deadline: normalized.deadline,
+                                    };
+                                } else {
+                                    this.quickTodoErrors = normalized;
+                                }
+
+                                const fallback = isEditing
+                                    ? 'Gagal memperbarui checklist.'
+                                    : 'Gagal menambahkan checklist.';
+                                this.setQuickNotice(data.message || fallback, 'error');
+                                this.openQuickWizard(2);
+                                return;
+                            }
+
+                            this.upsertTask(data.task);
+                            this.selectedTaskId = Number(data.task.id);
+                            const fallback = isEditing
+                                ? 'Checklist berhasil diperbarui.'
+                                : 'Checklist berhasil ditambahkan.';
+                            this.setQuickNotice(data.message || fallback);
+
+                            if (isEditing) {
+                                this.cancelQuickTodoEdit(false);
+                                this.openQuickWizard(2);
+                                return;
+                            }
+
+                            this.resetQuickTodoForm();
+                            this.openQuickWizard(2);
+                        } catch (error) {
+                            const fallback = isEditing
+                                ? 'Terjadi kesalahan saat memperbarui checklist.'
+                                : 'Terjadi kesalahan saat menambahkan checklist.';
+                            this.setQuickNotice(fallback, 'error');
+                        } finally {
+                            this.quickTodoSubmitting = false;
+                        }
+                    },
+
+                    async deleteSelectedTask() {
+                        const task = this.selectedTask;
+
+                        if (!task || !task.delete_url) {
+                            return;
+                        }
+
+                        if (!window.confirm('Hapus tugas terpilih? Semua checklist di dalamnya juga akan hilang.')) {
+                            return;
+                        }
+
+                        this.taskDeleting = true;
+                        this.taskEditorNotice = null;
+
+                        try {
+                            const response = await fetch(task.delete_url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': this.csrfToken(),
+                                },
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok || !data.success) {
+                                this.taskEditorNotice = {
+                                    type: 'error',
+                                    message: data.message || 'Gagal menghapus tugas.',
+                                };
+                                return;
+                            }
+
+                            this.removeTaskById(data.deleted_id ?? task.id);
+
+                            if (data.next_task_id) {
+                                this.selectedTaskId = Number(data.next_task_id);
+                            } else if (this.tasks[0]) {
+                                this.selectedTaskId = Number(this.tasks[0].id);
+                            } else {
+                                this.selectedTaskId = null;
+                            }
+
+                            const message = data.message || 'Tugas berhasil dihapus.';
+                            this.taskEditorNotice = {
+                                type: 'success',
+                                message,
+                            };
+                            this.setQuickNotice(message);
+                        } catch (error) {
+                            this.taskEditorNotice = {
+                                type: 'error',
+                                message: 'Terjadi kesalahan saat menghapus tugas.',
+                            };
+                        } finally {
+                            this.taskDeleting = false;
+                        }
+                    },
+
                     async submitAttendanceForm() {
                         this.attendanceSubmitting = true;
                         this.attendanceFormErrors = {};
@@ -875,6 +1537,7 @@
                             task.status_label = this.statusLabel(data.tugas_status);
                             task.progress = data.progress;
                             task.todo_completed_count = task.todos.filter((entry) => entry.status === this.doneStatus).length;
+                            this.sortTasks();
                         } catch (error) {
                             todo.status = previousTodoStatus;
                             todo.status_label = this.statusLabel(previousTodoStatus);
@@ -882,6 +1545,7 @@
                             task.status_label = this.statusLabel(previousTaskStatus);
                             task.progress = previousTaskProgress;
                             task.todo_completed_count = previousCompletedCount;
+                            this.sortTasks();
                         }
                     },
                 }

@@ -6,7 +6,7 @@
     <div class="max-w-3xl mx-auto">
         <x-ui.card>
             <div class="text-center mb-8">
-                <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div class="w-20 h-20 bg-primary rounded-md flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-11 w-11 text-primary-content" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

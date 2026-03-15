@@ -31,8 +31,16 @@ Route::middleware('auth')->group(function () {
         ->name('mata-kuliah.focus-attendance.destroy');
     Route::post('mata-kuliah/{mataKuliah}/focus-task', [MataKuliahController::class, 'storeFocusTask'])
         ->name('mata-kuliah.focus-task');
+    Route::put('mata-kuliah/{mataKuliah}/focus-task/{tugas}', [MataKuliahController::class, 'updateFocusTask'])
+        ->name('mata-kuliah.focus-task.update');
+    Route::delete('mata-kuliah/{mataKuliah}/focus-task/{tugas}', [MataKuliahController::class, 'destroyFocusTask'])
+        ->name('mata-kuliah.focus-task.destroy');
     Route::post('mata-kuliah/{mataKuliah}/focus-todo', [MataKuliahController::class, 'storeFocusTodo'])
         ->name('mata-kuliah.focus-todo');
+    Route::put('mata-kuliah/{mataKuliah}/focus-todo/{todo}', [MataKuliahController::class, 'updateFocusTodo'])
+        ->name('mata-kuliah.focus-todo.update');
+    Route::delete('mata-kuliah/{mataKuliah}/focus-todo/{todo}', [MataKuliahController::class, 'destroyFocusTodo'])
+        ->name('mata-kuliah.focus-todo.destroy');
     Route::resource('mata-kuliah', MataKuliahController::class);
     Route::post('mata-kuliah/bulk-action', [MataKuliahController::class, 'bulkAction'])
         ->name('mata-kuliah.bulk-action');

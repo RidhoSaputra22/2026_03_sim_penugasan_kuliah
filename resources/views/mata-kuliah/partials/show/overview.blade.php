@@ -130,7 +130,7 @@
     </div>
 </x-ui.card>
 
-<div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+<div class="hidden grid-cols-2 gap-4 sm:grid md:grid-cols-3 xl:grid-cols-5">
     <x-ui.stat title="Total Tugas" :value="$totalTugas" description="semua tugas mata kuliah">
         <x-slot:icon>
             <x-heroicon-o-rectangle-stack class="h-8 w-8 text-primary" />

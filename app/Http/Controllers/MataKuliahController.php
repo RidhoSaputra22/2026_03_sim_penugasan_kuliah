@@ -145,61 +145,7 @@ class MataKuliahController extends Controller
 
         $absensiPayload = $absensis->map(fn(Absensi $item) => $this->attendancePayload($item, $mataKuliah))->values();
 
-        $tugasPayload = $tugas->map(function (Tugas $item) {
-            $status = $this->normalizeStatusValue($item->status);
-            $deadline = Carbon::parse($item->deadline);
-            $deadlineOffset = now()->startOfDay()->diffInDays($deadline->copy()->startOfDay(), false);
-            $attendanceStatus = $item->absensi?->status instanceof AttendanceStatus
-                ? $item->absensi->status
-                : ($item->absensi?->status ? AttendanceStatus::from((string) $item->absensi->status) : null);
-
-            $todos = $item->todos->map(function (Todo $todo) {
-                $status = $this->normalizeStatusValue($todo->status);
-                $deadline = $todo->deadline ? Carbon::parse($todo->deadline) : null;
-
-                return [
-                    'id' => $todo->id,
-                    'title' => $todo->judul,
-                    'description' => $todo->deskripsi,
-                    'status' => $status,
-                    'status_label' => $this->statusLabel($status),
-                    'deadline_label' => $deadline?->format('d M Y'),
-                    'update_url' => route('todo.updateStatus', ['todo' => $todo->id]),
-                ];
-            })->values();
-
-            $todoCompletedCount = $todos->where('status', Status::SELESAI->value)->count();
-
-            return [
-                'id' => $item->id,
-                'title' => $item->judul,
-                'description' => $item->deskripsi,
-                'status' => $status,
-                'status_label' => $this->statusLabel($status),
-                'priority' => $item->prioritas ?? 'sedang',
-                'progress' => (int) $item->progress,
-                'deadline_sort' => $deadline->toDateString(),
-                'deadline_label' => $deadline->format('d M Y'),
-                'deadline_relative' => $this->deadlineRelativeLabel($deadlineOffset, $status),
-                'is_overdue' => $deadlineOffset < 0 && $status !== Status::SELESAI->value,
-                'is_due_soon' => $deadlineOffset >= 0 && $deadlineOffset <= 3 && $status !== Status::SELESAI->value,
-                'note' => $item->catatan,
-                'absensi_id' => $item->absensi_id,
-                'attendance_id' => $item->absensi_id,
-                'attendance_label' => $item->absensi
-                    ? $this->attendanceSummaryLabel($item->absensi)
-                    : null,
-                'attendance_status' => $attendanceStatus?->value,
-                'attendance_status_label' => $attendanceStatus?->label(),
-                'attendance_date_label' => $item->absensi?->tanggal?->translatedFormat('d M Y'),
-                'attendance_topic' => $item->absensi?->topik,
-                'todo_count' => $todos->count(),
-                'todo_completed_count' => $todoCompletedCount,
-                'show_url' => route('tugas.show', $item),
-                'edit_url' => route('tugas.edit', $item),
-                'todos' => $todos,
-            ];
-        })->values();
+        $tugasPayload = $tugas->map(fn (Tugas $item) => $this->focusTaskPayload($item, $mataKuliah))->values();
 
         $absensiPayload = $absensiPayload->map(function (array $attendance) use ($tugasPayload) {
             $attendance['linked_task_count'] = $tugasPayload
@@ -491,9 +437,20 @@ class MataKuliahController extends Controller
             'catatan' => $validated['task_catatan'] ?? null,
         ]);
 
+        if ($request->expectsJson()) {
+            $this->loadFocusTaskRelations($tugas);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tugas baru berhasil ditambahkan dari mode fokus.',
+                'task' => $this->focusTaskPayload($tugas, $mataKuliah),
+            ]);
+        }
+
         return redirect()->route('mata-kuliah.show', $mataKuliah)
             ->with('focus_task_id', $tugas->id)
             ->with('focus_absensi_id', $absensiId)
+            ->with('focus_wizard_step', 2)
             ->with('success', 'Tugas baru berhasil ditambahkan dari mode fokus.');
     }
 
@@ -522,10 +479,260 @@ class MataKuliahController extends Controller
 
         $this->syncTugasProgressFromTodos($tugas);
 
+        if ($request->expectsJson()) {
+            $this->loadFocusTaskRelations($tugas);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Checklist tugas berhasil ditambahkan.',
+                'task' => $this->focusTaskPayload($tugas, $mataKuliah),
+            ]);
+        }
+
         return redirect()->route('mata-kuliah.show', $mataKuliah)
             ->with('focus_task_id', $tugas->id)
             ->with('focus_absensi_id', $tugas->absensi_id)
+            ->with('focus_wizard_step', 2)
             ->with('success', 'Checklist tugas berhasil ditambahkan.');
+    }
+
+    public function updateFocusTodo(Request $request, MataKuliah $mataKuliah, Todo $todo)
+    {
+        $todo->load('tugas');
+        $tugas = $todo->tugas;
+
+        if (!$tugas) {
+            abort(404);
+        }
+
+        $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
+
+        $validated = $request->validateWithBag('focusTodoUpdate', [
+            'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
+            'deadline' => ['nullable', 'date'],
+        ]);
+
+        $todo->update([
+            'judul' => $validated['judul'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+            'deadline' => !empty($validated['deadline'])
+                ? Carbon::parse($validated['deadline'])->endOfDay()
+                : $tugas->deadline,
+        ]);
+
+        $tugas->refresh();
+        $this->loadFocusTaskRelations($tugas);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Checklist tugas berhasil diperbarui.',
+                'task' => $this->focusTaskPayload($tugas, $mataKuliah),
+            ]);
+        }
+
+        return redirect()->route('mata-kuliah.show', $mataKuliah)
+            ->with('focus_task_id', $tugas->id)
+            ->with('focus_absensi_id', $tugas->absensi_id)
+            ->with('focus_wizard_step', 2)
+            ->with('success', 'Checklist tugas berhasil diperbarui.');
+    }
+
+    public function destroyFocusTodo(Request $request, MataKuliah $mataKuliah, Todo $todo)
+    {
+        $todo->load('tugas');
+        $tugas = $todo->tugas;
+
+        if (!$tugas) {
+            abort(404);
+        }
+
+        $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
+
+        $deletedId = $todo->id;
+        $todo->delete();
+
+        $this->syncTugasProgressFromTodos($tugas);
+
+        $tugas->refresh();
+        $this->loadFocusTaskRelations($tugas);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Checklist tugas berhasil dihapus.',
+                'deleted_id' => $deletedId,
+                'task' => $this->focusTaskPayload($tugas, $mataKuliah),
+            ]);
+        }
+
+        return redirect()->route('mata-kuliah.show', $mataKuliah)
+            ->with('focus_task_id', $tugas->id)
+            ->with('focus_absensi_id', $tugas->absensi_id)
+            ->with('focus_wizard_step', 2)
+            ->with('success', 'Checklist tugas berhasil dihapus.');
+    }
+
+    public function updateFocusTask(Request $request, MataKuliah $mataKuliah, Tugas $tugas)
+    {
+        $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
+
+        $validated = $request->validateWithBag('focusTaskUpdate', [
+            'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
+            'deadline' => ['required', 'date'],
+            'prioritas' => ['required', Rule::in(['rendah', 'sedang', 'tinggi'])],
+            'catatan' => ['nullable', 'string'],
+        ]);
+
+        $tugas->update([
+            'judul' => $validated['judul'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+            'deadline' => Carbon::parse($validated['deadline'])->endOfDay(),
+            'prioritas' => $validated['prioritas'],
+            'catatan' => $validated['catatan'] ?? null,
+        ]);
+
+        $this->loadFocusTaskRelations($tugas);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tugas berhasil diperbarui.',
+                'task' => $this->focusTaskPayload($tugas, $mataKuliah),
+            ]);
+        }
+
+        return redirect()->route('mata-kuliah.show', $mataKuliah)
+            ->with('focus_task_id', $tugas->id)
+            ->with('success', 'Tugas berhasil diperbarui.');
+    }
+
+    public function destroyFocusTask(Request $request, MataKuliah $mataKuliah, Tugas $tugas)
+    {
+        $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
+
+        $deletedId = $tugas->id;
+        $tugas->delete();
+
+        $nextTaskId = Tugas::query()
+            ->where('user_id', auth()->id())
+            ->where('mata_kuliah_id', $mataKuliah->id)
+            ->orderByRaw("
+                CASE
+                    WHEN status = 'BELUM' THEN 1
+                    WHEN status = 'PROGRESS' THEN 2
+                    WHEN status = 'SELESAI' THEN 3
+                    ELSE 4
+                END
+            ")
+            ->orderBy('deadline')
+            ->value('id');
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tugas berhasil dihapus.',
+                'deleted_id' => $deletedId,
+                'next_task_id' => $nextTaskId,
+            ]);
+        }
+
+        return redirect()->route('mata-kuliah.show', $mataKuliah)
+            ->with('focus_task_id', $nextTaskId)
+            ->with('success', 'Tugas berhasil dihapus.');
+    }
+
+    private function ensureTugasBelongsToCourse(MataKuliah $mataKuliah, Tugas $tugas): void
+    {
+        if ((int) $tugas->mata_kuliah_id !== (int) $mataKuliah->id) {
+            abort(404);
+        }
+
+        if ((int) $tugas->user_id !== (int) auth()->id()) {
+            abort(404);
+        }
+    }
+
+    private function loadFocusTaskRelations(Tugas $tugas): void
+    {
+        $tugas->load([
+            'absensi',
+            'todos' => fn ($query) => $query
+                ->orderByRaw("
+                    CASE
+                        WHEN UPPER(status) = 'SELESAI' THEN 3
+                        WHEN UPPER(status) = 'PROGRESS' THEN 2
+                        ELSE 1
+                    END
+                ")
+                ->orderBy('deadline'),
+        ]);
+    }
+
+    private function focusTodoPayload(Todo $todo, MataKuliah $mataKuliah): array
+    {
+        $status = $this->normalizeStatusValue($todo->status);
+        $deadline = $todo->deadline ? Carbon::parse($todo->deadline) : null;
+
+        return [
+            'id' => $todo->id,
+            'title' => $todo->judul,
+            'description' => $todo->deskripsi,
+            'status' => $status,
+            'status_label' => $this->statusLabel($status),
+            'deadline_sort' => $deadline?->toDateString(),
+            'deadline_label' => $deadline?->format('d M Y'),
+            'update_url' => route('todo.updateStatus', ['todo' => $todo->id]),
+            'edit_url' => route('mata-kuliah.focus-todo.update', [$mataKuliah, $todo]),
+            'delete_url' => route('mata-kuliah.focus-todo.destroy', [$mataKuliah, $todo]),
+        ];
+    }
+
+    private function focusTaskPayload(Tugas $item, MataKuliah $mataKuliah): array
+    {
+        $status = $this->normalizeStatusValue($item->status);
+        $deadline = Carbon::parse($item->deadline);
+        $deadlineOffset = now()->startOfDay()->diffInDays($deadline->copy()->startOfDay(), false);
+        $attendanceStatus = $item->absensi?->status instanceof AttendanceStatus
+            ? $item->absensi->status
+            : ($item->absensi?->status ? AttendanceStatus::from((string) $item->absensi->status) : null);
+
+        $todos = $item->todos->map(fn (Todo $todo) => $this->focusTodoPayload($todo, $mataKuliah))->values();
+        $todoCompletedCount = $todos->where('status', Status::SELESAI->value)->count();
+
+        return [
+            'id' => $item->id,
+            'title' => $item->judul,
+            'description' => $item->deskripsi,
+            'status' => $status,
+            'status_label' => $this->statusLabel($status),
+            'priority' => $item->prioritas ?? 'sedang',
+            'progress' => (int) $item->progress,
+            'deadline_sort' => $deadline->toDateString(),
+            'deadline_label' => $deadline->format('d M Y'),
+            'deadline_relative' => $this->deadlineRelativeLabel($deadlineOffset, $status),
+            'is_overdue' => $deadlineOffset < 0 && $status !== Status::SELESAI->value,
+            'is_due_soon' => $deadlineOffset >= 0 && $deadlineOffset <= 3 && $status !== Status::SELESAI->value,
+            'note' => $item->catatan,
+            'absensi_id' => $item->absensi_id,
+            'attendance_id' => $item->absensi_id,
+            'attendance_label' => $item->absensi
+                ? $this->attendanceSummaryLabel($item->absensi)
+                : null,
+            'attendance_status' => $attendanceStatus?->value,
+            'attendance_status_label' => $attendanceStatus?->label(),
+            'attendance_date_label' => $item->absensi?->tanggal?->translatedFormat('d M Y'),
+            'attendance_topic' => $item->absensi?->topik,
+            'todo_count' => $todos->count(),
+            'todo_completed_count' => $todoCompletedCount,
+            'show_url' => route('tugas.show', $item),
+            'edit_url' => route('tugas.edit', $item),
+            'update_url' => route('mata-kuliah.focus-task.update', [$mataKuliah, $item]),
+            'delete_url' => route('mata-kuliah.focus-task.destroy', [$mataKuliah, $item]),
+            'todos' => $todos,
+        ];
     }
 
     private function syncTugasProgressFromTodos(Tugas $tugas): void

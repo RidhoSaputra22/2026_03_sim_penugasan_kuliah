@@ -76,11 +76,8 @@
                                         :class="statusClass(task.status)" x-text="task.status_label"></span>
                                     <span class="badge badge-sm" :class="priorityClass(task.priority)"
                                         x-text="priorityLabel(task.priority)"></span>
-                                    <span class="badge badge-ghost badge-sm"
-                                        x-text="task.todo_completed_count + '/' + task.todo_count + ' checklist'"></span>
-                                    <span x-show="task.attendance_label" x-cloak
-                                        class="badge badge-sm badge-info"
-                                        x-text="task.attendance_label"></span>
+
+
                                 </div>
 
                                 <div class="mt-1.5 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
@@ -131,36 +128,64 @@
         </div>
     </x-ui.card>
 
-    <x-ui.card compact class="border border-base-300/50">
-        <div x-show="selectedTask" x-cloak>
-            <div
-                class="grid gap-3 lg:grid-cols-2 xl:grid-cols-[minmax(0,2.1fr)_minmax(9.5rem,0.95fr)_minmax(10rem,1fr)_minmax(8rem,0.82fr)_minmax(9.5rem,0.95fr)_minmax(10.5rem,1.05fr)]">
-                <div
-                    class="min-w-0 rounded-md border border-base-300/70 bg-base-100 px-4 py-3 lg:col-span-2 xl:col-span-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="badge badge-outline badge-sm" :class="statusClass(selectedTask?.status)"
-                            x-text="selectedTask?.status_label"></span>
-                        <span class="badge badge-sm" :class="priorityClass(selectedTask?.priority)"
-                            x-text="priorityLabel(selectedTask?.priority)"></span>
-                        <span x-show="selectedTask?.attendance_label" class="badge badge-sm badge-info" x-cloak
-                            x-text="selectedTask?.attendance_label"></span>
-                    </div>
-                    <h3 class="mt-2.5 text-lg font-semibold text-base-content sm:text-xl" x-text="selectedTask?.title"></h3>
-                    <p class="mt-1.5 text-xs leading-5 text-base-content/65 sm:text-sm sm:leading-6"
-                        x-text="truncate(selectedTask?.description || 'Belum ada deskripsi untuk tugas ini.', 150)"></p>
-                </div>
+    <x-ui.card id="task-detail-card" compact class="border border-base-300/50">
+        <div x-show="selectedTask" x-cloak class="space-y-5">
+            <div x-show="taskEditorNotice" x-cloak class="alert py-3"
+                :class="taskEditorNotice?.type === 'error' ? 'alert-error' : 'alert-success'">
+                <span x-text="taskEditorNotice?.message"></span>
+            </div>
 
-                <div
-                    class="rounded-md border border-base-300/70 bg-base-100 px-3 py-2.5 text-xs sm:text-sm">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-base-content/45">
+                            Info Detail Tugas
+                        </div>
+
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                            <span class="badge badge-outline badge-sm" :class="statusClass(selectedTask?.status)"
+                                x-text="selectedTask?.status_label"></span>
+                            <span class="badge badge-sm" :class="priorityClass(selectedTask?.priority)"
+                                x-text="priorityLabel(selectedTask?.priority)"></span>
+                            <span x-show="selectedTask?.attendance_label" class="badge badge-sm badge-info" x-cloak
+                                x-text="selectedTask?.attendance_label"></span>
+                        </div>
+
+                        <h3 class="mt-3 text-lg font-semibold text-base-content sm:text-xl"
+                            x-text="selectedTask?.title"></h3>
+                        <p class="mt-2 text-xs leading-5 text-base-content/65 sm:text-sm sm:leading-6"
+                            x-text="selectedTask?.description || 'Belum ada deskripsi untuk tugas ini.'"></p>
+                    </div>
+
+                <div class="flex flex-wrap gap-2">
+                        <x-ui.button type="ghost" size="sm" :isSubmit="false"
+                            @click="activateWorkspaceTab('action', 'todo')">
+                            <x-heroicon-o-list-bullet class="h-4 w-4" />
+                            Tambah Checklist
+                        </x-ui.button>
+
+                        <x-ui.button type="primary" size="sm" :isSubmit="false" @click="editSelectedTaskInWizard()">
+                            <x-heroicon-o-pencil-square class="h-4 w-4" />
+                            Edit
+                        </x-ui.button>
+                        <x-ui.button type="ghost" size="sm" :isSubmit="false" class="text-error"
+                            x-bind:disabled="taskDeleting" ::class="taskDeleting ? 'loading' : ''"
+                            @click="deleteSelectedTask()">
+                            <x-heroicon-o-trash class="h-4 w-4" />
+                            Hapus
+                        </x-ui.button>
+                </div>
+            </div>
+
+            <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
+                <div class="rounded-md border border-base-300/70 bg-base-100 px-3 py-3 text-xs sm:text-sm">
                     <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Deadline</div>
-                    <div class="mt-1 font-semibold text-base-content" x-text="selectedTask?.deadline_label"></div>
+                    <div class="mt-1.5 font-semibold text-base-content" x-text="selectedTask?.deadline_label"></div>
                     <div class="mt-1 text-xs"
                         :class="selectedTask?.is_overdue ? 'text-error' : (selectedTask?.is_due_soon ? 'text-warning' : 'text-base-content/60')"
                         x-text="selectedTask?.deadline_relative"></div>
                 </div>
 
-                <div
-                    class="rounded-md border border-base-300/70 bg-base-100 px-3 py-2.5 text-xs sm:text-sm">
+                <div class="rounded-md border border-base-300/70 bg-base-100 px-3 py-3 text-xs sm:text-sm">
                     <div class="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-base-content/45">
                         <span>Progress</span>
                         <span class="font-semibold text-primary" x-text="selectedTask?.progress + '%'"></span>
@@ -170,10 +195,9 @@
                     <div class="mt-1.5 text-xs text-base-content/60" x-text="selectedTask?.status_label"></div>
                 </div>
 
-                <div
-                    class="rounded-md border border-base-300/70 bg-base-100 px-3 py-2.5 text-xs sm:text-sm">
+                <div class="rounded-md border border-base-300/70 bg-base-100 px-3 py-3 text-xs sm:text-sm">
                     <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Checklist</div>
-                    <div class="mt-1 font-semibold text-base-content"
+                    <div class="mt-1.5 font-semibold text-base-content"
                         x-text="selectedTask?.todo_completed_count + '/' + selectedTask?.todo_count"></div>
                     <x-ui.button type="link" size="sm" :isSubmit="false" class="mt-1 h-auto min-h-0 px-0 text-xs"
                         @click="activateWorkspaceTab('action', 'todo')">
@@ -181,10 +205,9 @@
                     </x-ui.button>
                 </div>
 
-                <div
-                    class="rounded-md border border-base-300/70 bg-base-100 px-3 py-2.5 text-xs sm:text-sm">
+                <div class="rounded-md border border-base-300/70 bg-base-100 px-3 py-3 text-xs sm:text-sm">
                     <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Pertemuan</div>
-                    <div class="mt-1 truncate font-semibold text-base-content"
+                    <div class="mt-1.5 truncate font-semibold text-base-content"
                         x-text="selectedTask?.attendance_label || 'Belum ditautkan'"></div>
                     <x-ui.button type="link" size="sm" :isSubmit="false" class="mt-1 h-auto min-h-0 px-0 text-xs"
                         x-show="selectedTask?.attendance_id" x-cloak
@@ -192,27 +215,80 @@
                         Buka absensi
                     </x-ui.button>
                 </div>
+            </div>
 
-                <div
-                    class="hidden rounded-md border border-base-300/70 bg-base-100 p-3 sm:flex sm:flex-col sm:justify-between lg:col-span-2 xl:col-span-1">
-                    <div class="mb-3 text-[11px] uppercase tracking-[0.18em] text-base-content/45">Aksi</div>
-                    <div class="space-y-2">
-                        <x-ui.button type="ghost" size="sm" :isSubmit="false" class="w-full justify-start"
-                        @click="showDialog('task-focus-modal')">
-                        <x-heroicon-o-arrows-pointing-out class="h-4 w-4" />
-                        Workspace
-                        </x-ui.button>
-                        <x-ui.button type="ghost" size="sm" x-bind:href="selectedTask?.show_url" :isSubmit="false"
-                            class="w-full justify-start">
-                            <x-heroicon-o-eye class="h-4 w-4" />
-                            Detail
-                        </x-ui.button>
-                        <x-ui.button type="primary" size="sm" x-bind:href="selectedTask?.edit_url" :isSubmit="false"
-                            class="w-full justify-start">
-                            <x-heroicon-o-pencil-square class="h-4 w-4" />
-                            Edit
-                        </x-ui.button>
+            <div x-show="selectedTask?.note" class="rounded-md border border-base-300/70 bg-base-100 p-4" x-cloak>
+                <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Catatan Tugas</div>
+                <pre class="mt-3 whitespace-pre-wrap font-sans text-xs leading-5 text-base-content/70 sm:text-sm sm:leading-6"
+                    x-text="selectedTask?.note"></pre>
+            </div>
+
+            <div class="rounded-md border border-base-300/70 bg-base-100 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Checklist Tugas</div>
+                        <div class="mt-1 text-sm font-semibold text-base-content sm:text-base">
+                            Semua item kerja untuk tugas terpilih tersimpan di sini.
+                        </div>
                     </div>
+
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false"
+                        @click="activateWorkspaceTab('action', 'todo')">
+                        <x-heroicon-o-plus class="h-4 w-4" />
+                        Tambah Checklist
+                    </x-ui.button>
+                </div>
+
+                <div x-show="selectedTask?.todos?.length === 0"
+                    class="mt-4 rounded-md border border-dashed border-base-300 p-6 text-center text-sm text-base-content/60"
+                    x-cloak>
+                    Belum ada checklist. Tambahkan item baru agar progres lebih terukur.
+                </div>
+
+                <div x-show="selectedTask?.todos?.length > 0" class="mt-4 space-y-3" x-cloak>
+                    <template x-for="todo in selectedTask?.todos || []" :key="todo.id">
+                        <div
+                            class="flex items-start gap-3 rounded-md border p-4 transition"
+                            :class="todo.status === doneStatus
+                                ? 'border-success/30 bg-success/5'
+                                : 'border-base-300/70 bg-base-100 hover:border-primary/30'">
+                            <x-ui.checkbox :bare="true" class="mt-0.5"
+                                x-bind:checked="todo.status === doneStatus"
+                                x-bind:aria-label="'Tandai checklist ' + todo.title"
+                                @change="toggleTodo(selectedTask.id, todo.id, $event.target.checked)" />
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <div class="font-medium text-base-content" x-text="todo.title"></div>
+                                            <span class="badge badge-xs"
+                                                :class="todo.status === doneStatus ? 'badge-success' : 'badge-warning'"
+                                                x-text="todo.status_label"></span>
+                                        </div>
+                                        <p class="mt-1 text-xs leading-5 text-base-content/65 sm:text-sm sm:leading-6"
+                                            x-text="todo.description || 'Tidak ada deskripsi tambahan.'"></p>
+                                        <div x-show="todo.deadline_label"
+                                            class="mt-2 text-xs uppercase tracking-wide text-base-content/45"
+                                            x-text="'Deadline checklist: ' + todo.deadline_label"></div>
+                                    </div>
+
+                                    <div class="flex items-start gap-1">
+                                        <x-ui.button type="ghost" size="xs" :isSubmit="false"
+                                            @click="editTodoInWizard(todo)">
+                                            <x-heroicon-o-pencil-square class="h-4 w-4" />
+                                        </x-ui.button>
+                                        <x-ui.button type="ghost" size="xs" :isSubmit="false" class="text-error"
+                                            x-bind:disabled="todoDeletingId === todo.id"
+                                            ::class="todoDeletingId === todo.id ? 'loading' : ''"
+                                            @click="deleteTodo(todo)">
+                                            <x-heroicon-o-trash class="h-4 w-4" />
+                                        </x-ui.button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>

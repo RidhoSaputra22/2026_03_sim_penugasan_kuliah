@@ -35,13 +35,13 @@
                 <div class="mt-4 max-h-[58vh] space-y-3 overflow-y-auto pr-1">
                     <div class="space-y-2">
                         <button type="button"
-                            class="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition duration-200"
+                            class="flex w-full items-center justify-between rounded-md border px-3.5 py-3 text-left transition duration-200"
                             :class="mobileFabBranch === 'course'
                                 ? 'border-primary/70 bg-primary/[0.05] shadow-lg shadow-primary/10'
                                 : 'border-base-300/70 bg-base-100 hover:border-base-300 hover:bg-base-200/35'"
                             @click="toggleMobileFabBranch('course')">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-md bg-primary/10 text-primary">
                                     <x-heroicon-o-book-open class="h-4 w-4" />
                                 </span>
                                 <div>
@@ -82,63 +82,18 @@
 
                     <div class="space-y-2">
                         <button type="button"
-                            class="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition duration-200"
-                            :class="mobileFabBranch === 'panel'
-                                ? 'border-primary/70 bg-primary/[0.05] shadow-lg shadow-primary/10'
-                                : 'border-base-300/70 bg-base-100 hover:border-base-300 hover:bg-base-200/35'"
-                            @click="toggleMobileFabBranch('panel')">
-                            <div class="flex items-center gap-3">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-info/10 text-info">
-                                    <x-heroicon-o-squares-2x2 class="h-4 w-4" />
-                                </span>
-                                <div>
-                                    <div class="text-sm font-semibold text-base-content">Panel Fokus</div>
-                                    <div class="text-[11px] leading-4 text-base-content/45">Papan tugas, tab aksi, dan parkir</div>
-                                </div>
-                            </div>
-                            <x-heroicon-o-chevron-right class="h-4 w-4 transition"
-                                x-bind:class="mobileFabBranch === 'panel' ? 'rotate-90 text-primary' : 'text-base-content/25'" />
-                        </button>
-
-                        <div x-show="mobileFabBranch === 'panel'" x-transition
-                            class="ml-5 space-y-2 border-l border-base-300/60 pl-4">
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="scrollToSection('task-board'); closeMobileFab()">
-                                <x-heroicon-o-rectangle-stack class="h-4 w-4 text-base-content/55" />
-                                Buka papan fokus tugas
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('action'); closeMobileFab()">
-                                <x-heroicon-o-bolt class="h-4 w-4 text-base-content/55" />
-                                Tab aksi
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('parking'); closeMobileFab(); $nextTick(() => $refs.quickItemInput?.focus())">
-                                <x-heroicon-o-bookmark-square class="h-4 w-4 text-base-content/55" />
-                                Tab parkir fokus
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <button type="button"
-                            class="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition duration-200"
+                            class="flex w-full items-center justify-between rounded-md border px-3.5 py-3 text-left transition duration-200"
                             :class="mobileFabBranch === 'task'
                                 ? 'border-primary/70 bg-primary/[0.05] shadow-lg shadow-primary/10'
                                 : 'border-base-300/70 bg-base-100 hover:border-base-300 hover:bg-base-200/35'"
                             @click="toggleMobileFabBranch('task')">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-md bg-secondary/10 text-secondary">
                                     <x-heroicon-o-clipboard-document-list class="h-4 w-4" />
                                 </span>
                                 <div>
-                                    <div class="text-sm font-semibold text-base-content">Tugas</div>
-                                    <div class="text-[11px] leading-4 text-base-content/45">Form, workspace, dan tugas terpilih</div>
+                                    <div class="text-sm font-semibold text-base-content">Fokus</div>
+                                    <div class="text-[11px] leading-4 text-base-content/45">Tugas, checklist, dan catatan materi</div>
                                 </div>
                             </div>
                             <x-heroicon-o-chevron-right class="h-4 w-4 transition"
@@ -149,54 +104,51 @@
                             class="ml-5 space-y-2 border-l border-base-300/60 pl-4">
                             <button type="button"
                                 class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('action', 'task'); closeMobileFab()">
+                                @click="openQuickTaskCreate(); closeMobileFab()">
                                 <x-heroicon-o-plus class="h-4 w-4 text-base-content/55" />
-                                Tambah tugas
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('action'); togglePanel('task'); closeMobileFab()">
-                                <x-heroicon-o-pencil-square class="h-4 w-4 text-base-content/55" />
-                                <span x-text="panels.task ? 'Tutup form tugas' : 'Buka form tugas'"></span>
+                                Buat tugas
                             </button>
 
                             <button type="button"
                                 class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
                                 :class="selectedTask ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
                                 :disabled="!selectedTask"
-                                @click="if (!selectedTask) return; activateWorkspaceTab('action', 'todo'); closeMobileFab()">
+                                @click="if (!selectedTask) return; editSelectedTaskInWizard(); closeMobileFab()">
+                                <x-heroicon-o-pencil-square class="h-4 w-4 text-base-content/55" />
+                                Edit tugas terpilih
+                            </button>
+
+                            <button type="button"
+                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
+                                :class="selectedTask ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
+                                :disabled="!selectedTask"
+                                @click="if (!selectedTask) return; openQuickTodoCreate(); closeMobileFab()">
                                 <x-heroicon-o-list-bullet class="h-4 w-4 text-base-content/55" />
                                 Tambah checklist
                             </button>
 
                             <button type="button"
+                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
+                                @click="openAttendanceModal(); closeMobileFab()">
+                                <x-heroicon-o-calendar-days class="h-4 w-4 text-base-content/55" />
+                                Catat materi
+                            </button>
+
+                            <button type="button"
+                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
+                                @click="scrollToSection('task-board'); closeMobileFab()">
+                                <x-heroicon-o-rectangle-stack class="h-4 w-4 text-base-content/55" />
+                                Buka papan tugas
+                            </button>
+
+                            <button type="button"
                                 class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
                                 :class="selectedTask ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
                                 :disabled="!selectedTask"
-                                @click="if (!selectedTask) { scrollToSection('task-board'); closeMobileFab(); return; } showDialog('task-focus-modal'); closeMobileFab()">
-                                <x-heroicon-o-arrows-pointing-out class="h-4 w-4 text-base-content/55" />
-                                Workspace tugas
+                                @click="if (!selectedTask) { scrollToSection('task-board'); closeMobileFab(); return; } scrollToSection('task-detail-card'); closeMobileFab()">
+                                <x-heroicon-o-document-text class="h-4 w-4 text-base-content/55" />
+                                Info tugas terpilih
                             </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
-                                :class="selectedTask?.show_url ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
-                                :disabled="!selectedTask?.show_url"
-                                @click="if (!selectedTask?.show_url) return; goTo(selectedTask.show_url)">
-                                <x-heroicon-o-eye class="h-4 w-4 text-base-content/55" />
-                                Detail tugas terpilih
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
-                                :class="selectedTask?.edit_url ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
-                                :disabled="!selectedTask?.edit_url"
-                                @click="if (!selectedTask?.edit_url) return; goTo(selectedTask.edit_url)">
-                                <x-heroicon-o-pencil-square class="h-4 w-4 text-base-content/55" />
-                                Edit tugas terpilih
-                            </button>
-
                         </div>
                     </div>
                 </div>

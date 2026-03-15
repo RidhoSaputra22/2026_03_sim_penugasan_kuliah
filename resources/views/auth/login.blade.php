@@ -2,7 +2,7 @@
     <div class="w-full max-w-md mx-auto p-4">
         {{-- Logo & Title --}}
         <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div class="w-16 h-16 bg-primary rounded-md flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 text-primary-content" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
