@@ -45,6 +45,19 @@ class DashboardController extends Controller
         $jadwalHariIni = MataKuliah::where('hari', $hariIni->value)
             ->orderBy('jam_mulai', 'asc')
             ->get();
+        $sekarang = Carbon::now();
+        $mataKuliahBerlangsung = $jadwalHariIni
+            ->filter(function (MataKuliah $mataKuliah) use ($sekarang) {
+                if (!filled($mataKuliah->jam_mulai) || !filled($mataKuliah->jam_selesai)) {
+                    return false;
+                }
+
+                $jamMulai = $sekarang->copy()->setTimeFromTimeString($mataKuliah->jam_mulai);
+                $jamSelesai = $sekarang->copy()->setTimeFromTimeString($mataKuliah->jam_selesai);
+
+                return $sekarang->greaterThanOrEqualTo($jamMulai) && $sekarang->lt($jamSelesai);
+            })
+            ->values();
 
         // Reminders (tugas deadline <= 3 hari)
         $reminders = Tugas::where('user_id', $user->id)
@@ -109,6 +122,7 @@ class DashboardController extends Controller
             'avgProgress',
             'deadlineTerdekat',
             'jadwalHariIni',
+            'mataKuliahBerlangsung',
             'reminders',
             'totalMataKuliah',
             'totalSks',

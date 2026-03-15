@@ -69,3 +69,11 @@
 .syncing {
     animation: sync-pulse 1.5s ease-in-out infinite;
 }
+
+/* Prevent zero-valued progress bars from rendering as loading animations. */
+.progress[value="0"],
+.progress[value="0"]::-webkit-progress-value,
+.progress[value="0"]::-moz-progress-bar {
+    animation: none !important;
+    transition: none !important;
+}

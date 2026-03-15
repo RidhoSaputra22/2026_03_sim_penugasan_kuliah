@@ -27,6 +27,8 @@
         'error' => '<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
         default => '',
     };
+
+    $hasActions = isset($actions) || $dismissible;
 @endphp
 
 <div
@@ -43,9 +45,25 @@
         {!! $iconSvg !!}
     @endif
 
-    <span>{{ $slot }}</span>
+    <div @class([
+        'flex w-full min-w-0 gap-3',
+        'items-start' => $hasActions,
+        'sm:items-center sm:justify-between' => $hasActions,
+    ])>
+        <div class="min-w-0 flex-1">
+            {{ $slot }}
+        </div>
 
-    @if($dismissible)
-        <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="show = false">✕</x-ui.button>
-    @endif
+        @if($hasActions)
+            <div class="flex shrink-0 items-center gap-2 self-start sm:self-center">
+                @if(isset($actions))
+                    {{ $actions }}
+                @endif
+
+                @if($dismissible)
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="show = false">✕</x-ui.button>
+                @endif
+            </div>
+        @endif
+    </div>
 </div>

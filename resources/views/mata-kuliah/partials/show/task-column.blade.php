@@ -95,7 +95,7 @@
                                             <span x-text="task.progress + '%'"></span>
                                         </div>
                                         <progress class="progress progress-primary mt-2 h-1.5 w-full"
-                                            :value="task.progress || 1" max="100"></progress>
+                                            value="0" :value="task.progress ?? 0" max="100"></progress>
                                     </div>
                                 </div>
                             </div>
@@ -116,7 +116,7 @@
                                         <span x-text="task.progress + '%'"></span>
                                     </div>
                                     <progress class="progress progress-primary mt-2 h-1.5 w-full"
-                                        :value="task.progress || 1" max="100"></progress>
+                                        value="0" :value="task.progress ?? 0" max="100"></progress>
                                     <div class="mt-2 text-[11px] text-base-content/55"
                                         x-text="task.todo_completed_count + '/' + task.todo_count + ' checklist selesai'"></div>
                                 </div>
@@ -191,7 +191,7 @@
                         <span class="font-semibold text-primary" x-text="selectedTask?.progress + '%'"></span>
                     </div>
                     <progress class="progress progress-primary mt-2 h-1.5 w-full"
-                        :value="selectedTask?.progress || 1" max="100"></progress>
+                        value="0" :value="selectedTask?.progress ?? 0" max="100"></progress>
                     <div class="mt-1.5 text-xs text-base-content/60" x-text="selectedTask?.status_label"></div>
                 </div>
 

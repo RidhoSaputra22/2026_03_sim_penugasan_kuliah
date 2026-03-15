@@ -132,7 +132,8 @@
                         <span class="text-sm font-medium">Progress Tugas</span>
                         <span class="text-2xl font-bold text-primary" x-text="progress + '%'">{{ $tugas->progress }}%</span>
                     </div>
-                    <progress class="progress progress-primary w-full h-4" :value="progress" max="100"></progress>
+                    <progress class="progress progress-primary w-full h-4" value="{{ $tugas->progress }}"
+                        :value="progress ?? 0" max="100"></progress>
                     <div class="mt-2">
                         <span class="badge" :class="{
                             'badge-success': status === '{{$selesai}}',
