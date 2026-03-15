@@ -10,11 +10,12 @@
 
 
         {{-- Sidebar toggle (mobile) --}}
-        <button class="btn btn-ghost btn-sm btn-square lg:hidden" @click="sidebarMobileOpen = true">
+        <x-ui.button type="ghost" size="sm" :isSubmit="false" class="btn-square lg:hidden"
+            @click="sidebarMobileOpen = true">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-        </button>
+        </x-ui.button>
 
         {{-- Page title --}}
         <h1 class="text-lg font-semibold text-base-content ">{{ $title }}</h1>
@@ -27,7 +28,7 @@
         <x-layouts.partial.global-search />
 
         <label class="swap swap-rotate">
-            <input id="theme-toggle" type="checkbox" class="theme-controller" />
+            <x-ui.checkbox :bare="true" :unstyled="true" id="theme-toggle" class="theme-controller" />
 
             <!-- sun -->
             <x-heroicon-o-sun class="swap-off h-7 w-7 fill-current" />
@@ -66,14 +67,14 @@
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full text-left flex items-center gap-2 text-error">
+                        <x-ui.button type="ghost" class="w-full justify-start text-error">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             Keluar
-                        </button>
+                        </x-ui.button>
                     </form>
                 </li>
             </ul>

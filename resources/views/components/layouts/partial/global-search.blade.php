@@ -3,11 +3,12 @@
     @keydown.escape.window="open = false">
     <div class="relative  ">
         <div class="hidden sm:block">
-            <input
+            <div class="w-86">
+                <x-ui.input
                 name="global_search_desktop"
                 placeholder="Cari... (Ctrl+K)"
                 size="sm"
-                class="input input-sm w-86 pr-8 "
+                class="pr-8"
                 x-model="query"
                 @input.debounce.300ms="search()"
                 @focus="if (results.length) open = true"
@@ -15,7 +16,8 @@
                 @keydown.arrow-down.prevent="moveDown()"
                 @keydown.arrow-up.prevent="moveUp()"
                 @keydown.enter.prevent="goToSelected()"
-            />
+                />
+            </div>
             <template x-if="!loading">
                 <x-heroicon-o-magnifying-glass class="h-4 w-4 absolute right-2.5 top-2.5 text-base-content/40" />
             </template>

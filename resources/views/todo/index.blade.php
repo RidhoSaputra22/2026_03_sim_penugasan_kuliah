@@ -25,7 +25,7 @@
                         <form action="{{ route('todo.destroy', $todo->id) }}" method="POST" style="display:inline-block">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                            <x-ui.button type="error" size="sm" onclick="return confirm('Yakin hapus?')">Hapus</x-ui.button>
                         </form>
                     </td>
                 </tr>

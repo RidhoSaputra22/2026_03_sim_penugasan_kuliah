@@ -51,7 +51,7 @@
 
                         @if($closeButton)
                             <form method="dialog">
-                                <button class="btn btn-sm btn-circle btn-ghost" type="submit">✕</button>
+                                <x-ui.button type="ghost" size="sm" class="btn-circle">✕</x-ui.button>
                             </form>
                         @endif
                     </div>
@@ -99,6 +99,6 @@
     </div>
 
     <form method="dialog" class="modal-backdrop">
-        <button type="submit">close</button>
+        <x-ui.button class="hidden">close</x-ui.button>
     </form>
 </dialog>

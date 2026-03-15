@@ -83,12 +83,9 @@
                                     }"
                                 >
                                     <div class="flex items-center gap-2">
-                                        <input type="checkbox"
-                                            :checked="status === '{{$selesai}}'"
-                                            @change="updateStatus"
-                                            class="checkbox checkbox-primary"
-                                            id="todo-check-{{ $todo->id }}"
-                                        />
+                                        <x-ui.checkbox :bare="true" id="todo-check-{{ $todo->id }}"
+                                            x-bind:checked="status === '{{ $selesai }}'"
+                                            @change="updateStatus" />
                                         <label :for="'todo-check-{{ $todo->id }}'" class="font-semibold cursor-pointer uppercase">
                                             {{ Str::limit($todo->judul, 50) }}
                                         </label>

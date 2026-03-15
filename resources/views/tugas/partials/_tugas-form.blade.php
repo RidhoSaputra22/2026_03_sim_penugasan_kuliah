@@ -50,7 +50,7 @@
     @if (isset($method) && $method === 'PUT')
         @method('PUT')
     @endif
-    <input type="hidden" name="MAX_FILE_SIZE" value="10485760" />
+    <x-ui.input type="hidden" name="MAX_FILE_SIZE" value="10485760" />
 
     <x-ui.select name="mata_kuliah_id" label="Mata Kuliah" :required="true" placeholder="Pilih mata kuliah"
         :options="$mataKuliah->pluck('nama', 'id')->toArray()"
@@ -59,27 +59,18 @@
 
     <div class="space-y-3">
         <div class="w-full">
-            <label class="label" for="absensi_id">
-                <span class="label-text">Absensi Terkait</span>
-            </label>
-
-            <select id="absensi_id" name="absensi_id" class="select select-bordered w-full"
-                x-model="selectedAttendanceId" :disabled="!selectedCourseId">
+            <x-ui.select name="absensi_id" label="Absensi Terkait" placeholder=""
+                :error="$errors->first('absensi_id')"
+                x-model="selectedAttendanceId" x-bind:disabled="!selectedCourseId">
                 <option value="">Tidak ditautkan ke pertemuan tertentu</option>
                 <template x-for="attendance in filteredAttendances()" :key="attendance.id">
                     <option :value="attendance.id" x-text="attendance.label"></option>
                 </template>
-            </select>
+            </x-ui.select>
 
             <label class="label">
                 <span class="label-text-alt text-base-content/70" x-text="attendanceHelperText()"></span>
             </label>
-
-            @error('absensi_id')
-                <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
-                </label>
-            @enderror
         </div>
 
         <div x-show="selectedAttendance()" class="rounded-md border border-base-300/70 bg-base-100 p-4" x-cloak>
@@ -135,11 +126,11 @@
                     x-model="todo.deskripsi" placeholder="Deskripsi todo (opsional)" :rows="2" />
 
                 <div class="mt-2 flex items-center gap-2">
-                    <button type="button" class="btn btn-ghost btn-sm ml-auto text-error"
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false" class="ml-auto text-error"
                         @click="removeTodo(idx)" x-show="todos.length > 1">
                         <x-heroicon-o-x-mark class="h-4 w-4" />
                         Hapus
-                    </button>
+                    </x-ui.button>
                 </div>
             </div>
         </template>

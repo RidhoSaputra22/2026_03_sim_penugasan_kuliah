@@ -20,10 +20,10 @@
     </div>
 
     <form method="GET" action="{{ route(Route::currentRouteName()) }}#{{ Str::slug($title) }}" class="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <label class="input input-bordered input-sm flex w-full sm:min-w-64 items-center gap-2">
+        <div class="relative w-full sm:min-w-64">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 opacity-70"
+                class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-70"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -36,14 +36,14 @@
                 />
             </svg>
 
-            <input
-                type="text"
+            <x-ui.input
+                size="sm"
                 name="search"
-                value="{{ request('search') }}"
-                class="grow"
+                :value="request('search')"
+                class="pl-9"
                 placeholder="Cari data..."
             />
-        </label>
+        </div>
 
         @isset($filters)
             <div class="flex  items-center gap-2">
@@ -51,7 +51,7 @@
             </div>
         @endisset
 
-        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-        <a href="{{ url()->current() }}" class="btn btn-sm btn-ghost">Reset</a>
+        <x-ui.button type="primary" size="sm">Filter</x-ui.button>
+        <x-ui.button type="ghost" size="sm" :href="url()->current()" :isSubmit="false">Reset</x-ui.button>
     </form>
 </div>

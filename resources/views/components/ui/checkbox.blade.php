@@ -12,7 +12,8 @@
 --}}
 
 @props([
-    'name',
+    'name' => null,
+    'id' => null,
     'label' => null,
     'options' => [],
     'checked' => [],
@@ -20,65 +21,104 @@
     'layout' => 'horizontal',
     'helpText' => null,
     'single' => true,
+    'singleLabel' => null,
+    'error' => null,
+    'bare' => false,
+    'unstyled' => false,
 ])
 
-<div class="form-control w-full">
-    @if($label)
-        <label class="label">
-            <span class="label-text">
-                {{ $label }}
-                @if($required)
-                    <span class="text-error">*</span>
+@php
+    $singleChecked = $name ? old($name, $checked) : $checked;
+    $checkedValues = $name ? old($name, (array) $checked) : (array) $checked;
+    $inputId = $id ?: ($bare ? null : ($name ? str_replace(['[', ']'], '_', $name) . '_' . uniqid() : 'checkbox_' . uniqid()));
+    $defaultClass = $unstyled ? '' : 'checkbox checkbox-primary';
+@endphp
+
+@if($single && $bare)
+    <input
+        type="checkbox"
+        @if($inputId) id="{{ $inputId }}" @endif
+        @if($name) name="{{ $name }}" @endif
+        value="1"
+        @checked($singleChecked)
+        {{ $required ? 'required' : '' }}
+        {{ $attributes->merge(['class' => $defaultClass]) }}
+    />
+@else
+    <div class="form-control w-full">
+        @if($label)
+            <label class="label">
+                <span class="label-text">
+                    {{ $label }}
+                    @if($required)
+                        <span class="text-error">*</span>
+                    @endif
+                </span>
+            </label>
+        @endif
+
+        @if($single)
+            <label class="flex cursor-pointer items-center gap-2" @if($inputId) for="{{ $inputId }}" @endif>
+                <input
+                    type="checkbox"
+                    @if($inputId) id="{{ $inputId }}" @endif
+                    @if($name) name="{{ $name }}" @endif
+                    value="1"
+                    @checked($singleChecked)
+                    {{ $required ? 'required' : '' }}
+                    {{ $attributes->merge(['class' => $defaultClass]) }}
+                />
+
+                @if(!$slot->isEmpty())
+                    <div class="min-w-0 flex-1">
+                        {{ $slot }}
+                    </div>
+                @elseif($singleLabel || ($options[0]['label'] ?? null))
+                    <span class="label-text">{{ $singleLabel ?? ($options[0]['label'] ?? '') }}</span>
                 @endif
-            </span>
-        </label>
-    @endif
+            </label>
+        @else
+            <div class="flex {{ $layout === 'vertical' ? 'flex-col' : 'flex-wrap' }} gap-4">
+                @foreach($options as $option)
+                    @php
+                        $isDisabled = isset($option['disabled']) && $option['disabled'];
+                        $optionId = ($id ?: ($name ? str_replace(['[', ']'], '_', $name) : 'checkbox')) . '_' . $loop->index;
+                    @endphp
+                    <label class="flex cursor-pointer items-center gap-2 {{ $isDisabled ? 'opacity-50' : '' }}" for="{{ $optionId }}">
+                        <input
+                            type="checkbox"
+                            id="{{ $optionId }}"
+                            @if($name) name="{{ $name }}" @endif
+                            value="{{ $option['value'] }}"
+                            {{ in_array($option['value'], (array) $checkedValues) ? 'checked' : '' }}
+                            {{ $required ? 'required' : '' }}
+                            {{ $isDisabled ? 'disabled' : '' }}
+                            {{ $attributes->merge(['class' => $defaultClass]) }}
+                        />
+                        <span>{{ $option['label'] }}</span>
+                    </label>
+                @endforeach
+            </div>
+        @endif
 
-    @if($single)
-        <!-- Single checkbox -->
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input
-                type="checkbox"
-                name="{{ $name }}"
-                value="1"
-                {{ old($name, in_array('1', (array)$checked)) ? 'checked' : '' }}
-                {{ $required ? 'required' : '' }}
-                {{ $attributes->merge(['class' => 'checkbox checkbox-primary']) }}
-            />
-            <span class="label-text">{{ $options[0]['label'] ?? '' }}</span>
-        </label>
-    @else
-        <!-- Multiple checkboxes -->
-        <div class="flex {{ $layout === 'vertical' ? 'flex-col' : 'flex-wrap' }} gap-4">
-            @foreach($options as $option)
-                @php
-                    $isDisabled = isset($option['disabled']) && $option['disabled'];
-                @endphp
-                <label class="flex items-center gap-2 cursor-pointer {{ $isDisabled ? 'opacity-50' : '' }}">
-                    <input
-                        type="checkbox"
-                        name="{{ $name }}"
-                        value="{{ $option['value'] }}"
-                        {{ in_array($option['value'], old($name, (array)$checked)) ? 'checked' : '' }}
-                        {{ $required ? 'required' : '' }}
-                        {{ $isDisabled ? 'disabled' : '' }}
-                        {{ $attributes->merge(['class' => 'checkbox checkbox-primary']) }}
-                    />
-                    <span>{{ $option['label'] }}</span>
+        @if($helpText)
+            <label class="label">
+                <span class="label-text-alt text-base-content/70">{{ $helpText }}</span>
+            </label>
+        @endif
+
+        @if($error)
+            <label class="label">
+                <span class="label-text-alt text-error">{{ $error }}</span>
+            </label>
+        @endif
+
+        @if($name)
+            @error($name)
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ $message }}</span>
                 </label>
-            @endforeach
-        </div>
-    @endif
-
-    @if($helpText)
-        <label class="label">
-            <span class="label-text-alt text-base-content/70">{{ $helpText }}</span>
-        </label>
-    @endif
-
-    @error($name)
-        <label class="label">
-            <span class="label-text-alt text-error">{{ $message }}</span>
-        </label>
-    @enderror
-</div>
+            @enderror
+        @endif
+    </div>
+@endif

@@ -12,19 +12,19 @@
 {{-- Navigation --}}
 <x-ui.card class="{{ $navigationCardClass }}">
     <div class="flex items-center justify-between">
-        <button type="button" class="btn btn-ghost {{ $navigationButtonClass }}" @click="prevMonth()">
+        <x-ui.button type="ghost" :isSubmit="false" class="{{ $navigationButtonClass }}" @click="prevMonth()">
             <svg xmlns="http://www.w3.org/2000/svg" class="{{ $navigationIconClass }}" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
-        </button>
+        </x-ui.button>
         <h3 class="{{ $navigationTitleClass }} font-bold" x-text="monthYear"></h3>
-        <button type="button" class="btn btn-ghost {{ $navigationButtonClass }}" @click="nextMonth()">
+        <x-ui.button type="ghost" :isSubmit="false" class="{{ $navigationButtonClass }}" @click="nextMonth()">
             <svg xmlns="http://www.w3.org/2000/svg" class="{{ $navigationIconClass }}" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-        </button>
+        </x-ui.button>
     </div>
 
     {{-- Legend --}}

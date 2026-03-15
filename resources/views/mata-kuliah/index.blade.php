@@ -113,8 +113,7 @@
                     :showRoute="fn($row) => route('mata-kuliah.show', $row->id)"
                     :editRoute="fn($row) => route('mata-kuliah.edit', $row->id)" :deleteRoute="fn($row) => route('mata-kuliah.destroy', $row->id)">
                     <x-slot:filters>
-                        <input type="text" name="dosen" value="{{ request('dosen') }}"
-                            class="input input-bordered input-sm" placeholder="Filter dosen">
+                        <x-ui.input size="sm" name="dosen" :value="request('dosen')" placeholder="Filter dosen" />
                         <x-ui.select size="sm" name="hari" :searchable="false" placeholder="Semua Hari"
                             :options="[
                                 'Senin' => 'Senin',

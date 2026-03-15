@@ -8,9 +8,10 @@
     >
         @csrf
 
-        <select
+        <x-ui.select
             name="bulk_action"
-            class="select select-bordered select-sm"
+            size="sm"
+            placeholder=""
             x-model="bulkAction"
         >
             <option value="">Bulk Action</option>
@@ -19,29 +20,30 @@
             @isset($bulkActions)
                 {{ $bulkActions }}
             @endisset
-        </select>
+        </x-ui.select>
 
         <template x-for="id in selected" :key="id">
-            <input type="hidden" name="ids[]" :value="id">
+            <x-ui.input type="hidden" name="ids[]" x-bind:value="id" />
         </template>
 
-        <button
-            type="submit"
-            class="btn btn-sm btn-error"
-            :disabled="!canSubmitBulk"
-            :class="{ 'btn-disabled': !canSubmitBulk }"
+        <x-ui.button
+            type="error"
+            size="sm"
+            x-bind:disabled="!canSubmitBulk"
+            x-bind:class="{ 'btn-disabled': !canSubmitBulk }"
         >
             Terapkan
-        </button>
+        </x-ui.button>
 
-        <button
-            type="button"
-            class="btn btn-sm btn-ghost"
+        <x-ui.button
+            type="ghost"
+            size="sm"
+            :isSubmit="false"
             x-show="selected.length > 0"
             @click="clearSelection()"
         >
             Reset Pilihan
-        </button>
+        </x-ui.button>
     </form>
 
     {{-- Confirm Modal --}}
@@ -64,24 +66,24 @@
 
             <div class="modal-action">
                 <form method="dialog">
-                    <button type="button" class="btn btn-ghost" @click="closeBulkActionModal()">
+                    <x-ui.button type="ghost" :isSubmit="false" @click="closeBulkActionModal()">
                         Batal
-                    </button>
+                    </x-ui.button>
                 </form>
 
-                <button
-                    type="button"
-                    class="btn"
-                    :class="bulkAction === 'delete' ? 'btn-error' : 'btn-primary'"
+                <x-ui.button
+                    type="primary"
+                    :isSubmit="false"
+                    x-bind:class="bulkAction === 'delete' ? 'btn-error' : 'btn-primary'"
                     @click="confirmBulkAction()"
                 >
                     Ya, Lanjutkan
-                </button>
+                </x-ui.button>
             </div>
         </div>
 
         <form method="dialog" class="modal-backdrop">
-            <button @click="closeBulkActionModal()">close</button>
+            <x-ui.button class="hidden" @click="closeBulkActionModal()">close</x-ui.button>
         </form>
     </dialog>
 @endif

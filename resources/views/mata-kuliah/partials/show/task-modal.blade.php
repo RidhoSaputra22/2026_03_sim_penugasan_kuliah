@@ -85,9 +85,10 @@
                             :class="todo.status === doneStatus
                                 ? 'border-success/30 bg-success/5'
                                 : 'border-base-300/70 bg-base-100 hover:border-primary/30'">
-                            <input type="checkbox" class="checkbox checkbox-primary mt-0.5"
-                                :checked="todo.status === doneStatus"
-                                @change="toggleTodo(selectedTask.id, todo.id, $event.target.checked)">
+                            <x-ui.checkbox :bare="true" class="mt-0.5"
+                                x-bind:checked="todo.status === doneStatus"
+                                x-bind:aria-label="'Tandai checklist ' + todo.title"
+                                @change="toggleTodo(selectedTask.id, todo.id, $event.target.checked)" />
 
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-2">

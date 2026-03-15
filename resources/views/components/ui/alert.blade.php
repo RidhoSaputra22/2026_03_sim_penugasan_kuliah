@@ -46,6 +46,6 @@
     <span>{{ $slot }}</span>
 
     @if($dismissible)
-        <button class="btn btn-sm btn-ghost" @click="show = false">✕</button>
+        <x-ui.button type="ghost" size="sm" :isSubmit="false" @click="show = false">✕</x-ui.button>
     @endif
 </div>

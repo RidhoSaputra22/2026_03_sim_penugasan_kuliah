@@ -38,8 +38,9 @@
                             @endforeach
                         </ul>
                     </div>
-                    <button @click="showAll = !showAll" class="btn btn-xs btn-ghost mt-2" x-text="showAll ? 'Sembunyikan' : 'Lihat semua ({{ count(session('import_errors')) }})'">
-                    </button>
+                    <x-ui.button type="ghost" size="xs" :isSubmit="false" class="mt-2"
+                        @click="showAll = !showAll" x-text="showAll ? 'Sembunyikan' : 'Lihat semua ({{ count(session('import_errors')) }})'">
+                    </x-ui.button>
                 @endif
             </div>
         </x-ui.card>
@@ -67,31 +68,24 @@
 
                         {{-- File Upload --}}
                         <div class="space-y-2">
-                            <label class="label">
-                                <span class="label-text font-medium">File Excel (.xlsx) <span class="text-error">*</span></span>
-                            </label>
                             <div x-data="{ fileName: '' }" class="relative">
-                                <input type="file" name="file" accept=".xlsx"
-                                    class="file-input file-input-bordered w-full"
+                                <x-ui.input type="file" name="file" label="File Excel (.xlsx)" accept=".xlsx"
                                     @change="fileName = $event.target.files[0]?.name || ''"
-                                    required />
+                                    :error="$errors->first('file')" :required="true" />
                             </div>
                             <p class="text-xs text-base-content/50">Format: Excel (.xlsx). Maksimal 10MB.</p>
-                            @error('file')
-                                <p class="text-xs text-error mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         {{-- Opsi --}}
                         <div class="bg-base-200/50 rounded-lg p-4 space-y-3">
                             <h4 class="font-medium text-sm uppercase tracking-wider text-base-content/70">Opsi Import</h4>
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" name="skip_errors" value="1" class="checkbox checkbox-sm checkbox-primary" />
+                            <x-ui.checkbox name="skip_errors" value="1" class="checkbox-sm"
+                                :checked="old('skip_errors')">
                                 <div>
                                     <span class="label-text font-medium">Lewati baris yang error</span>
                                     <p class="text-xs text-base-content/50">Jika dicentang, baris yang gagal akan dilewati dan sisanya tetap diimport</p>
                                 </div>
-                            </label>
+                            </x-ui.checkbox>
                         </div>
 
                         {{-- Tombol --}}

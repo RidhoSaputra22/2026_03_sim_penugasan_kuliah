@@ -6,8 +6,8 @@
                 <tr>
                     @if ($selectable)
                         <th class="w-10">
-                            <input type="checkbox" class="checkbox checkbox-sm" :checked="isAllSelected"
-                                @mousedown.shift.prevent @click="toggleAll($event)">
+                            <x-ui.checkbox :bare="true" class="checkbox-sm" x-bind:checked="isAllSelected"
+                                aria-label="Pilih semua data" @mousedown.shift.prevent @click="toggleAll($event)" />
                         </th>
                     @endif
 
@@ -46,9 +46,10 @@
                     <tr class="hover">
                         @if ($selectable)
                             <td>
-                                <input type="checkbox" class="checkbox checkbox-sm"
-                                    :checked="selected.includes(@js($rowId))" @mousedown.shift.prevent
-                                    @click="toggleRow($event, @js($rowId))">
+                                <x-ui.checkbox :bare="true" class="checkbox-sm"
+                                    x-bind:checked="selected.includes(@js($rowId))"
+                                    x-bind:aria-label="'Pilih data ' + @js($rowId)" @mousedown.shift.prevent
+                                    @click="toggleRow($event, @js($rowId))" />
                             </td>
                         @endif
 
@@ -83,11 +84,11 @@
                                         @endif
 
                                         @if ($deleteRoute)
-                                            <button type="button" class="btn btn-ghost btn-xs text-error"
+                                            <x-ui.button type="ghost" size="xs" :isSubmit="false" class="text-error"
                                                 title="Hapus" aria-label="Hapus"
                                                 @click="$dispatch('confirm-delete', { action: '{{ $deleteRoute($row) }}', message: 'Apakah Anda yakin ingin menghapus data ini?' })">
                                                 <x-heroicon-o-trash class="h-4 w-4" />
-                                            </button>
+                                            </x-ui.button>
                                         @endif
                                 @endisset
                             </div>

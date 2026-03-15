@@ -164,11 +164,15 @@
                 </option>
             @endif
 
-            @foreach($normalizedOptions as $option)
-                <option value="{{ $option['value'] }}" {{ $selectedValue == $option['value'] ? 'selected' : '' }}>
-                    {{ $option['label'] }}
-                </option>
-            @endforeach
+            @if(!$slot->isEmpty())
+                {{ $slot }}
+            @else
+                @foreach($normalizedOptions as $option)
+                    <option value="{{ $option['value'] }}" {{ $selectedValue == $option['value'] ? 'selected' : '' }}>
+                        {{ $option['label'] }}
+                    </option>
+                @endforeach
+            @endif
         </select>
     @endif
 

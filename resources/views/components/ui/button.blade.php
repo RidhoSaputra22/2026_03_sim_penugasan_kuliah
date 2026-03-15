@@ -58,8 +58,14 @@
     }
 @endphp
 
-@if($href)
-    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }} @if($disabled) aria-disabled="true" tabindex="-1" @endif>
+@php
+    $hasDynamicHref = $attributes->has('x-bind:href') || $attributes->has(':href');
+    $renderAsLink = filled($href) || $hasDynamicHref;
+@endphp
+
+@if($renderAsLink)
+    <a @if($href) href="{{ $href }}" @elseif($hasDynamicHref) href="#" @endif
+        {{ $attributes->merge(['class' => $classes]) }} @if($disabled) aria-disabled="true" tabindex="-1" @endif>
         @if($loading)
             <span class="loading loading-spinner loading-sm"></span>
         @endif

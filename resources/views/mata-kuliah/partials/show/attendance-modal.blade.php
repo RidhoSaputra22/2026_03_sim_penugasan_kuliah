@@ -15,7 +15,7 @@
                 @submit.prevent="submitAttendanceForm()">
                 @csrf
 
-                <input type="hidden" name="absensi_id" x-model="attendanceForm.absensi_id">
+                <x-ui.input type="hidden" name="absensi_id" x-model="attendanceForm.absensi_id" />
 
                 <div x-show="attendanceNotice" x-cloak class="alert"
                     :class="attendanceNotice?.type === 'error' ? 'alert-error' : 'alert-success'">
@@ -97,12 +97,12 @@
 
                 <div x-show="selectedAttendance && selectedAttendance.delete_url" x-cloak
                     class="border-t border-base-300/70 pt-4">
-                    <button type="button" class="btn btn-error btn-sm btn-outline w-full"
-                        :disabled="attendanceDeleting" @click="deleteSelectedAttendance()">
+                    <x-ui.button type="error" size="sm" :outline="true" :isSubmit="false" class="w-full"
+                        x-bind:disabled="attendanceDeleting" @click="deleteSelectedAttendance()">
                         <span x-show="attendanceDeleting" class="loading loading-spinner loading-xs"></span>
                         <x-heroicon-o-trash class="h-4 w-4" />
                         Hapus Absensi Terpilih
-                    </button>
+                    </x-ui.button>
                 </div>
             </form>
 

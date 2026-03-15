@@ -9,13 +9,14 @@
                 <div class="card-body gap-3 p-4">
                     @if ($selectable)
                         <div class="flex justify-end">
-                            <input
-                                type="checkbox"
-                                class="checkbox checkbox-sm"
-                                :checked="selected.includes(@js($rowId))"
+                            <x-ui.checkbox
+                                :bare="true"
+                                class="checkbox-sm"
+                                x-bind:checked="selected.includes(@js($rowId))"
+                                x-bind:aria-label="'Pilih data ' + @js($rowId)"
                                 @mousedown.shift.prevent
                                 @click="toggleRow($event, @js($rowId))"
-                            >
+                            />
                         </div>
                     @endif
 
@@ -63,9 +64,9 @@
                                         >
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-error btn-outline">
+                                            <x-ui.button type="error" size="sm" :outline="true">
                                                 Hapus
-                                            </button>
+                                            </x-ui.button>
                                         </form>
                                     @endif
                                 @endisset

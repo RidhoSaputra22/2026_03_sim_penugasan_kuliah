@@ -225,11 +225,10 @@
             </span>
         </label>
         <div class="flex gap-2">
-            <input type="text" x-model="resolvedAddress" readonly
-                class="input input-bordered w-full input-sm bg-base-200 cursor-not-allowed"
-                placeholder="Mendeteksi alamat...">
+            <x-ui.input type="text" size="sm" x-model="resolvedAddress" readonly
+                class="bg-base-200 cursor-not-allowed" placeholder="Mendeteksi alamat..." />
             @if($addressField)
-            <button type="button" class="btn btn-sm btn-primary btn-outline gap-1 whitespace-nowrap"
+            <x-ui.button type="primary" size="sm" :outline="true" :isSubmit="false" class="gap-1 whitespace-nowrap"
                 x-show="resolvedAddress" x-cloak
                 @click="applyAddress()"
                 :class="{ 'btn-success': addressApplied }">
@@ -237,7 +236,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 <span x-text="addressApplied ? 'Tersalin' : 'Isi ke Alamat'"></span>
-            </button>
+            </x-ui.button>
             @endif
         </div>
         <label class="label" x-show="resolvedAddress && !addressApplied" x-cloak>
@@ -247,36 +246,24 @@
 
     {{-- Coordinate inputs --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-control w-full">
-            <label class="label"><span class="label-text">Latitude</span></label>
-            <input type="text" name="{{ $latitude }}" x-model="lat" readonly
-                class="input input-bordered w-full input-sm bg-base-200 cursor-not-allowed @error($latitude) input-error @enderror"
-                placeholder="Klik peta untuk mengisi">
-            @error($latitude)
-                <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-            @enderror
-        </div>
-        <div class="form-control w-full">
-            <label class="label"><span class="label-text">Longitude</span></label>
-            <input type="text" name="{{ $longitude }}" x-model="lng" readonly
-                class="input input-bordered w-full input-sm bg-base-200 cursor-not-allowed @error($longitude) input-error @enderror"
-                placeholder="Klik peta untuk mengisi">
-            @error($longitude)
-                <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
-            @enderror
-        </div>
+        <x-ui.input type="text" size="sm" name="{{ $latitude }}" label="Latitude" x-model="lat" readonly
+            class="bg-base-200 cursor-not-allowed" placeholder="Klik peta untuk mengisi"
+            :error="$errors->first($latitude)" />
+        <x-ui.input type="text" size="sm" name="{{ $longitude }}" label="Longitude" x-model="lng" readonly
+            class="bg-base-200 cursor-not-allowed" placeholder="Klik peta untuk mengisi"
+            :error="$errors->first($longitude)" />
     </div>
 
     {{-- Clear button --}}
     <div class="mt-2" x-show="lat && lng" x-cloak>
-        <button type="button" class="btn btn-ghost btn-xs text-error gap-1" @click="clearLocation()">
+        <x-ui.button type="ghost" size="xs" :isSubmit="false" class="text-error gap-1" @click="clearLocation()">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             Hapus Lokasi
-        </button>
+        </x-ui.button>
     </div>
 </div>
 

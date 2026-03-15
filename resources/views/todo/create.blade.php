@@ -1,34 +1,38 @@
 <x-layouts.app title="Tambah Todo">
-    <div class="container">
-        <h2>Tambah Todo</h2>
-        <form action="{{ route('todo.store') }}" method="POST">
+    <x-slot:header>
+        <x-layouts.page-header title="Tambah Todo" description="Tambahkan checklist baru ke tugas">
+            <x-slot:actions>
+                <x-ui.button type="ghost" size="sm" :href="isset($tugasId) ? route('tugas.show', $tugasId) : route('todo.index')">
+                    Kembali
+                </x-ui.button>
+            </x-slot:actions>
+        </x-layouts.page-header>
+    </x-slot:header>
+
+    <x-ui.card class="max-w-3xl">
+        <form action="{{ route('todo.store') }}" method="POST" class="space-y-4">
             @csrf
-            <div class="mb-3">
-                <label for="tugas_id" class="form-label">Tugas</label>
-                <select name="tugas_id" id="tugas_id" class="form-control" required>
-                    <option value="">Pilih Tugas</option>
-                    @foreach($tugasList as $tugas)
-                        <option value="{{ $tugas->id }}" {{ (isset($tugasId) && $tugasId == $tugas->id) ? 'selected' : '' }}>{{ $tugas->judul }}</option>
-                    @endforeach
-                </select>
+            <x-ui.select name="tugas_id" label="Tugas" :required="true" placeholder="Pilih Tugas"
+                :options="$tugasList->pluck('judul', 'id')->toArray()"
+                :value="old('tugas_id', $tugasId ?? '')" :error="$errors->first('tugas_id')" />
+
+            <x-ui.input name="judul" label="Judul" :required="true" :value="old('judul')" :error="$errors->first('judul')" />
+
+            <x-ui.textarea name="deskripsi" label="Deskripsi"
+                :value="old('deskripsi')" :error="$errors->first('deskripsi')" />
+
+            <x-ui.input name="status" label="Status"
+                :value="old('status', 'pending')" :error="$errors->first('status')" />
+
+            <x-ui.input name="deadline" type="datetime-local" label="Deadline"
+                :value="old('deadline')" :error="$errors->first('deadline')" />
+
+            <div class="flex justify-end gap-2">
+                <x-ui.button type="ghost" :href="isset($tugasId) ? route('tugas.show', $tugasId) : route('todo.index')" :isSubmit="false">
+                    Batal
+                </x-ui.button>
+                <x-ui.button type="primary">Simpan</x-ui.button>
             </div>
-            <div class="mb-3">
-                <label for="judul" class="form-label">Judul</label>
-                <input type="text" name="judul" id="judul" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="deskripsi" class="form-label">Deskripsi</label>
-                <textarea name="deskripsi" id="deskripsi" class="form-control"></textarea>
-            </div>
-            <div class="mb-3">
-                <label for="status" class="form-label">Status</label>
-                <input type="text" name="status" id="status" class="form-control" value="pending">
-            </div>
-            <div class="mb-3">
-                <label for="deadline" class="form-label">Deadline</label>
-                <input type="datetime-local" name="deadline" id="deadline" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
-    </div>
+    </x-ui.card>
 </x-layouts.app>

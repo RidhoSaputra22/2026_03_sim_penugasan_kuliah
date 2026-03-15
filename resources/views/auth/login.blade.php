@@ -30,10 +30,8 @@
 
                 {{-- Remember Me --}}
                 <div class="flex items-center justify-between">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="remember" class="checkbox checkbox-primary checkbox-sm" />
-                        <span class="label-text text-sm">Ingat saya</span>
-                    </label>
+                    <x-ui.checkbox name="remember" class="checkbox-sm" :checked="old('remember')"
+                        singleLabel="Ingat saya" />
                 </div>
 
                 {{-- Submit --}}

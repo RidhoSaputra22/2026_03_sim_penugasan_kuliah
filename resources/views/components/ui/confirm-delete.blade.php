@@ -59,21 +59,21 @@
                 </div>
             </div>
             <div class="modal-action">
-                <button type="button" class="btn" @click="cancel()">Batal</button>
+                <x-ui.button type="ghost" :isSubmit="false" @click="cancel()">Batal</x-ui.button>
 
                 {{-- Form mode: submit DELETE request --}}
                 <form x-show="mode === 'form'" :action="action" method="POST">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-error">Hapus</button>
+                    <x-ui.button type="error">Hapus</x-ui.button>
                 </form>
 
                 {{-- Promise mode: resolve promise --}}
-                <button x-show="mode === 'promise'" x-cloak type="button" class="btn btn-error" @click="confirmed()">Hapus</button>
+                <x-ui.button x-show="mode === 'promise'" x-cloak type="error" :isSubmit="false" @click="confirmed()">Hapus</x-ui.button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button @click="cancel()">close</button>
+            <x-ui.button class="hidden" @click="cancel()">close</x-ui.button>
         </form>
     </dialog>
 </div>

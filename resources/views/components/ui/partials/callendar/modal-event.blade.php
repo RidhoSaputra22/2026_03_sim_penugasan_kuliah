@@ -10,13 +10,13 @@
     </x-slot:title>
     @if ($allowEventCrud)
         <x-slot:modal-actions position="top-right">
-            <button class=" btn btn-success btn-sm gap-1" @click="openCreateEvent()">
+            <x-ui.button type="success" size="sm" :isSubmit="false" class="gap-1" @click="openCreateEvent()">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Tambah Event
-                </button>
+                </x-ui.button>
         </x-slot:modal-actions>
     @endif
 
@@ -74,23 +74,23 @@
                     @if ($allowEventCrud)
                         <template x-if="event.type === 'custom'">
                         <div class="flex items-center gap-1 ml-auto flex-shrink-0">
-                            <button class="btn btn-xs btn-ghost" :class="getEventTextClass(event.color)"
+                            <x-ui.button type="ghost" size="xs" :isSubmit="false" ::class="getEventTextClass(event.color)"
                                 @click.stop="openEditEvent(event)" title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                            </button>
+                            </x-ui.button>
 
-                            <button class="btn btn-xs btn-ghost" :class="getEventTextClass(event.color)"
+                            <x-ui.button type="ghost" size="xs" :isSubmit="false" ::class="getEventTextClass(event.color)"
                                 @click.stop="deleteEvent(event, idx)" title="Hapus">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
-                            </button>
+                            </x-ui.button>
                         </div>
                         </template>
                     @endif

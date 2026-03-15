@@ -107,7 +107,7 @@
                                 class="mt-5 space-y-4" x-show="tasks.length > 0 && panels.todo" x-cloak>
                                 @csrf
 
-                                <input type="hidden" name="tugas_id" x-model="selectedTaskId">
+                                <x-ui.input type="hidden" name="tugas_id" x-model="selectedTaskId" />
 
                                 <div class="rounded-md border border-base-300/70 bg-base-100 p-4">
                                     <div class="text-xs uppercase tracking-[0.2em] text-base-content/45">Tugas Aktif</div>
@@ -129,10 +129,10 @@
                                     :value="old('todo_deadline')" :error="$errors->quickTodo->first('todo_deadline')" />
 
                                 <div class="flex justify-end">
-                                    <button type="submit" class="btn btn-primary btn-sm" :disabled="!selectedTaskId">
+                                    <x-ui.button type="primary" size="sm" x-bind:disabled="!selectedTaskId">
                                         <x-heroicon-o-plus class="h-4 w-4" />
                                         Tambah Checklist
-                                    </button>
+                                    </x-ui.button>
                                 </div>
                             </form>
                         </div>
@@ -185,8 +185,10 @@
                         <div x-show="quickItems.length > 0" class="space-y-3" x-cloak>
                             <template x-for="item in quickItemsSorted" :key="item.id">
                                 <div class="flex items-start gap-3 rounded-md border border-base-300/70 bg-base-100 p-4">
-                                    <input type="checkbox" class="checkbox checkbox-secondary mt-0.5"
-                                        :checked="item.done" @change="toggleQuickItem(item.id)">
+                                    <x-ui.checkbox :bare="true" class="checkbox-secondary mt-0.5"
+                                        x-bind:checked="item.done"
+                                        x-bind:aria-label="'Tandai item ' + item.title"
+                                        @change="toggleQuickItem(item.id)" />
 
                                     <div class="min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
@@ -200,10 +202,10 @@
                                             x-text="item.done ? 'Sudah ditandai selesai' : 'Masih perlu ditindaklanjuti'"></div>
                                     </div>
 
-                                    <button type="button" class="btn btn-ghost btn-xs text-error"
+                                    <x-ui.button type="ghost" size="xs" :isSubmit="false" class="text-error"
                                         @click="removeQuickItem(item.id)">
                                         <x-heroicon-o-trash class="h-4 w-4" />
-                                    </button>
+                                    </x-ui.button>
                                 </div>
                             </template>
                         </div>

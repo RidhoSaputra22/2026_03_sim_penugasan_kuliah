@@ -20,7 +20,7 @@
         <form action="{{ route('todo.destroy', $todo->id) }}" method="POST" style="display:inline-block">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin hapus?')">Hapus</button>
+            <x-ui.button type="error" onclick="return confirm('Yakin hapus?')">Hapus</x-ui.button>
         </form>
         <a href="{{ route('tugas.show', $todo->tugas_id) }}" class="btn btn-secondary">Kembali ke Tugas</a>
     </div>
