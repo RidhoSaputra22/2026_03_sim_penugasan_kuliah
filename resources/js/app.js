@@ -8,7 +8,7 @@ const THEME_KEY = 'theme';
 
 
 // Register PWA Service Worker
-if ('serviceWorker' in navigator) {
+if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/build/sw.js', { scope: '/' })
             .then(registration => {

@@ -3,19 +3,21 @@
         @foreach ($data as $row)
             @php
                 $rowId = (string) data_get($row, $rowKey);
+                $rowIdJs = json_encode($rowId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
             @endphp
 
             <div class="card border border-base-200 bg-base-100 shadow-sm">
                 <div class="card-body gap-3 p-4">
                     @if ($selectable)
                         <div class="flex justify-end">
-                            <x-ui.checkbox
-                                :bare="true"
-                                class="checkbox-sm"
-                                x-bind:checked="selected.includes(@js($rowId))"
-                                x-bind:aria-label="'Pilih data ' + @js($rowId)"
-                                @mousedown.shift.prevent
-                                @click="toggleRow($event, @js($rowId))"
+                            <input
+                                type="checkbox"
+                                value="1"
+                                class="checkbox checkbox-primary checkbox-sm"
+                                x-bind:checked="selected.includes({{ $rowIdJs }})"
+                                x-bind:aria-label="'Pilih data ' + {{ $rowIdJs }}"
+                                x-on:mousedown.shift.prevent="$event.preventDefault()"
+                                x-on:click="toggleRow($event, {{ $rowIdJs }})"
                             />
                         </div>
                     @endif

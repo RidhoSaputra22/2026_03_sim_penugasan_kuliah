@@ -6,8 +6,15 @@
                 <tr>
                     @if ($selectable)
                         <th class="w-10">
-                            <x-ui.checkbox :bare="true" class="checkbox-sm" x-bind:checked="isAllSelected"
-                                aria-label="Pilih semua data" @mousedown.shift.prevent @click="toggleAll($event)" />
+                            <input
+                                type="checkbox"
+                                value="1"
+                                class="checkbox checkbox-primary checkbox-sm"
+                                x-bind:checked="isAllSelected"
+                                aria-label="Pilih semua data"
+                                x-on:mousedown.shift.prevent="$event.preventDefault()"
+                                x-on:click="toggleAll($event)"
+                            />
                         </th>
                     @endif
 
@@ -41,15 +48,21 @@
                 @foreach ($data as $row)
                     @php
                         $rowId = (string) data_get($row, $rowKey);
+                        $rowIdJs = json_encode($rowId, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
                     @endphp
 
                     <tr class="hover">
                         @if ($selectable)
                             <td>
-                                <x-ui.checkbox :bare="true" class="checkbox-sm"
-                                    x-bind:checked="selected.includes(@js($rowId))"
-                                    x-bind:aria-label="'Pilih data ' + @js($rowId)" @mousedown.shift.prevent
-                                    @click="toggleRow($event, @js($rowId))" />
+                                <input
+                                    type="checkbox"
+                                    value="1"
+                                    class="checkbox checkbox-primary checkbox-sm"
+                                    x-bind:checked="selected.includes({{ $rowIdJs }})"
+                                    x-bind:aria-label="'Pilih data ' + {{ $rowIdJs }}"
+                                    x-on:mousedown.shift.prevent="$event.preventDefault()"
+                                    x-on:click="toggleRow($event, {{ $rowIdJs }})"
+                                />
                             </td>
                         @endif
 
