@@ -143,25 +143,7 @@ class MataKuliahController extends Controller
 
         $durasiKuliah = $mataKuliah->durasi_kuliah_label;
 
-        $absensiPayload = $absensis->map(function (Absensi $item) use ($mataKuliah) {
-            $notes = $this->normalizeAttendanceNotes($item->catatan);
-            $status = $item->status instanceof AttendanceStatus
-                ? $item->status
-                : AttendanceStatus::from((string) $item->status);
-
-            return [
-                'id' => $item->id,
-                'meeting_number' => $item->pertemuan_ke,
-                'date' => optional($item->tanggal)->format('Y-m-d'),
-                'date_label' => optional($item->tanggal)->translatedFormat('d M Y'),
-                'status' => $status->value,
-                'status_label' => $status->label(),
-                'topic' => $item->topik,
-                'notes' => $notes,
-                'notes_count' => count($notes),
-                'delete_url' => route('mata-kuliah.focus-attendance.destroy', [$mataKuliah, $item]),
-            ];
-        })->values();
+        $absensiPayload = $absensis->map(fn(Absensi $item) => $this->attendancePayload($item, $mataKuliah))->values();
 
         $tugasPayload = $tugas->map(function (Tugas $item) {
             $status = $this->normalizeStatusValue($item->status);
@@ -387,10 +369,18 @@ class MataKuliahController extends Controller
     {
         $validated = $request->validateWithBag('attendanceManager', [
             'absensi_id' => ['nullable', 'integer', Rule::exists('absensis', 'id')],
-            'tanggal' => ['required', 'date'],
+            'tanggal' => [
+                'required',
+                'date',
+                Rule::unique('absensis', 'tanggal')
+                    ->where(fn ($query) => $query->where('mata_kuliah_id', $mataKuliah->id))
+                    ->ignore($request->integer('absensi_id')),
+            ],
             'pertemuan_ke' => ['nullable', 'integer', 'min:1', 'max:32'],
             'status' => ['required', Rule::in(AttendanceStatus::list())],
             'topik' => ['nullable', 'string', 'max:255'],
+        ], [
+            'tanggal.unique' => 'Absensi pada tanggal ini sudah ada. Pilih tanggal lain atau edit data yang sudah tersimpan.',
         ]);
 
         $absensi = !empty($validated['absensi_id'])
@@ -411,6 +401,14 @@ class MataKuliahController extends Controller
         $message = !empty($validated['absensi_id'])
             ? 'Data absensi berhasil diperbarui.'
             : 'Data absensi berhasil ditambahkan.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'attendance' => $this->attendancePayload($absensi->fresh(), $mataKuliah),
+            ]);
+        }
 
         return redirect()->route('mata-kuliah.show', $mataKuliah)
             ->with('focus_absensi_id', $absensi->id)
@@ -437,7 +435,7 @@ class MataKuliahController extends Controller
             ->with('success', 'Catatan absensi berhasil disimpan.');
     }
 
-    public function destroyFocusAttendance(MataKuliah $mataKuliah, Absensi $absensi)
+    public function destroyFocusAttendance(Request $request, MataKuliah $mataKuliah, Absensi $absensi)
     {
         $this->ensureAbsensiBelongsToCourse($mataKuliah, $absensi);
 
@@ -448,6 +446,15 @@ class MataKuliahController extends Controller
             ->value('id');
 
         $absensi->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data absensi berhasil dihapus.',
+                'deleted_id' => $absensi->id,
+                'next_attendance_id' => $nextAbsensiId,
+            ]);
+        }
 
         return redirect()->route('mata-kuliah.show', $mataKuliah)
             ->with('focus_absensi_id', $nextAbsensiId)
@@ -595,6 +602,27 @@ class MataKuliahController extends Controller
     private function normalizeAttendanceNotes(mixed $notes): array
     {
         return $this->sanitizeAttendanceNotes(is_array($notes) ? $notes : []);
+    }
+
+    private function attendancePayload(Absensi $item, MataKuliah $mataKuliah): array
+    {
+        $notes = $this->normalizeAttendanceNotes($item->catatan);
+        $status = $item->status instanceof AttendanceStatus
+            ? $item->status
+            : AttendanceStatus::from((string) $item->status);
+
+        return [
+            'id' => $item->id,
+            'meeting_number' => $item->pertemuan_ke,
+            'date' => optional($item->tanggal)->format('Y-m-d'),
+            'date_label' => optional($item->tanggal)->translatedFormat('d M Y'),
+            'status' => $status->value,
+            'status_label' => $status->label(),
+            'topic' => $item->topik,
+            'notes' => $notes,
+            'notes_count' => count($notes),
+            'delete_url' => route('mata-kuliah.focus-attendance.destroy', [$mataKuliah, $item]),
+        ];
     }
 
     private function attendanceSummaryLabel(Absensi $absensi): string

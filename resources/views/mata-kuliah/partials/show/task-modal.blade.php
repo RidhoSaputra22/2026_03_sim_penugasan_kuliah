@@ -12,8 +12,6 @@
                 x-text="selectedTask?.status_label"></span>
             <span class="badge badge-sm" :class="priorityClass(selectedTask?.priority)"
                 x-text="priorityLabel(selectedTask?.priority)"></span>
-            <span x-show="selectedTask?.attendance_label" class="badge badge-sm badge-info" x-cloak
-                x-text="selectedTask?.attendance_label"></span>
         </div>
 
         <p class="text-xs leading-5 text-base-content/70 sm:text-sm sm:leading-6"
@@ -44,33 +42,6 @@
                     </div>
                     <progress class="progress progress-primary mt-3 h-3 w-full"
                         :value="selectedTask?.progress || 1" max="100"></progress>
-                </div>
-
-                <div x-show="selectedTask?.attendance_id"
-                    class="rounded-md border border-base-300/70 bg-base-100 p-4" x-cloak>
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-xs uppercase tracking-[0.2em] text-base-content/45">
-                                Pertemuan Terkait
-                            </div>
-                            <div class="mt-2 flex flex-wrap items-center gap-2">
-                                <span class="badge badge-info badge-sm"
-                                    x-text="selectedTask?.attendance_label"></span>
-                                <span class="badge badge-outline badge-sm"
-                                    :class="attendanceStatusClass(selectedTask?.attendance_status)"
-                                    x-text="selectedTask?.attendance_status_label"></span>
-                            </div>
-                            <div class="mt-2 text-xs text-base-content/65 sm:text-sm"
-                                x-text="[selectedTask?.attendance_date_label, selectedTask?.attendance_topic].filter(Boolean).join(' • ') || 'Tugas ini ditautkan ke absensi pertemuan.'">
-                            </div>
-                        </div>
-
-                        <x-ui.button type="ghost" size="sm" :isSubmit="false"
-                            @click="closeDialog('task-focus-modal'); focusAttendance(selectedTask.attendance_id)">
-                            <x-heroicon-o-link class="h-4 w-4" />
-                            Buka
-                        </x-ui.button>
-                    </div>
                 </div>
 
                 <div x-show="selectedTask?.note"

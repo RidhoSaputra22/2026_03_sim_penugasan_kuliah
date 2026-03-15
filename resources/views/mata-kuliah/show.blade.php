@@ -2,11 +2,43 @@
     $attendanceStatusOptions = collect(\App\Enums\AttendanceStatus::cases())
         ->mapWithKeys(fn($status) => [$status->value => $status->label()])
         ->toArray();
+    $attendanceColorMap = [
+        \App\Enums\AttendanceStatus::HADIR->value => 'success',
+        \App\Enums\AttendanceStatus::IZIN->value => 'info',
+        \App\Enums\AttendanceStatus::SAKIT->value => 'warning',
+        \App\Enums\AttendanceStatus::ALPHA->value => 'error',
+    ];
+    $attendanceCalendarEvents = collect($absensiPayload)
+        ->map(function (array $attendance) use ($attendanceColorMap) {
+            $meetingLabel = $attendance['meeting_number']
+                ? 'Pertemuan ' . $attendance['meeting_number']
+                : 'Absensi Kuliah';
+            $description = collect([
+                $attendance['topic'],
+                $attendance['notes_count'] > 0 ? $attendance['notes_count'] . ' catatan' : null,
+            ])->filter()->implode(' • ');
+
+            return [
+                'id' => 'attendance-' . $attendance['id'],
+                'title' => $meetingLabel,
+                'start' => $attendance['date'],
+                'allDay' => true,
+                'color' => $attendanceColorMap[$attendance['status']] ?? 'primary',
+                'extendedProps' => [
+                    'type' => 'custom',
+                    'eventId' => 'attendance-' . $attendance['id'],
+                    'attendanceId' => $attendance['id'],
+                    'location' => $attendance['status_label'],
+                    'description' => $description,
+                    'status' => $attendance['status'],
+                    'color' => $attendanceColorMap[$attendance['status']] ?? 'primary',
+                ],
+            ];
+        })
+        ->values();
     $tabButtonClass = 'tab h-auto gap-2 whitespace-nowrap min-h-9 px-3 py-2 text-xs sm:text-sm';
-    $miniTabButtonClass = 'tab h-auto gap-2 whitespace-nowrap min-h-8 px-2 py-1 text-[11px]';
 
     $focusConfig = [
-        'courseId' => $mataKuliah->id,
         'initialTaskId' => $initialTaskId,
         'initialAttendanceId' => $initialAbsensiId,
         'tasks' => $tugasPayload,
@@ -21,15 +53,13 @@
         'doneStatus' => \App\Enums\Status::SELESAI->value,
         'progressStatus' => \App\Enums\Status::PROGRESS->value,
         'openStatus' => \App\Enums\Status::BELUM->value,
-        'workspaceTab' => $errors->quickTask->any() || $errors->quickTodo->any()
-            ? 'action'
-            : ($errors->attendanceManager->any() || $errors->attendanceNotes->any() ? 'attendance' : 'attendance'),
+        'workspaceTab' => 'action',
         'openTaskForm' => $errors->quickTask->any(),
         'openTodoForm' => $errors->quickTodo->any(),
-        'openAttendanceForm' => $errors->attendanceManager->any() || count($absensiPayload) === 0,
-        'linkTaskToAttendance' => old('task_absensi_id') !== null
-            ? old('task_absensi_id') !== ''
-            : count($absensiPayload) > 0,
+        'attendanceSaveUrl' => route('mata-kuliah.focus-attendance.save', $mataKuliah),
+        'attendanceCalendarSyncEvent' => 'attendance-calendar-sync',
+        'attendanceCalendarSelectionEvent' => 'attendance-calendar-selection-sync',
+        'openAttendanceModal' => $errors->attendanceManager->any(),
         'attendanceFormDraft' => [
             'absensi_id' => old('absensi_id', ''),
             'tanggal' => old('tanggal', ''),
@@ -38,9 +68,6 @@
             'topik' => old('topik', ''),
         ],
         'hasAttendanceFormDraft' => $errors->attendanceManager->any(),
-        'noteItemsDraft' => old('catatan', []),
-        'hasNoteDraft' => $errors->attendanceNotes->any(),
-        'totalAttendanceNotes' => $totalCatatanAbsensi,
     ];
 @endphp
 
@@ -59,6 +86,12 @@
                     Edit Mata Kuliah
                 </x-ui.button>
 
+                <x-ui.button type="primary" size="sm" :isSubmit="false" class="hidden sm:inline-flex"
+                    onclick="document.getElementById('attendance-focus-modal')?.showModal()">
+                    <x-heroicon-o-calendar-days class="h-4 w-4" />
+                    Absensi
+                </x-ui.button>
+
                 @if ($mataKuliah->lms_link)
                     <x-ui.button type="primary" size="sm" :href="$mataKuliah->lms_link" target="_blank" rel="noreferrer"
                         class="hidden sm:inline-flex">
@@ -71,12 +104,19 @@
     </x-slot:header>
 
     <div x-data="mataKuliahFocus(@js($focusConfig))" x-init="init()" @keydown.escape.window="closeMobileFab()"
+        @attendance-calendar-select.window="handleAttendanceCalendarSelect($event.detail?.event || null)"
+        @attendance-calendar-date-select.window="handleAttendanceCalendarDateSelect($event.detail?.date || null)"
         class="space-y-6 pb-28 text-[13px] sm:pb-24 sm:text-base lg:pb-0">
         @include('mata-kuliah.partials.show.overview')
 
-        <x-ui.callendar/>
+        <div class="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
+            @include('mata-kuliah.partials.show.task-column')
+            @include('mata-kuliah.partials.show.focus-hub')
+        </div>
 
-
+        @include('mata-kuliah.partials.show.mobile-fab')
+        @include('mata-kuliah.partials.show.task-modal')
+        @include('mata-kuliah.partials.show.attendance-modal')
     </div>
 
     @push('scripts')
@@ -89,17 +129,29 @@
                     selectedAttendanceId: config.initialAttendanceId ? Number(config.initialAttendanceId) : null,
                     taskFilter: 'all',
                     taskQuery: '',
-                    notesMode: 'edit',
-                    workspaceTab: config.workspaceTab || 'attendance',
+                    workspaceTab: config.workspaceTab || 'action',
                     mobileFabOpen: false,
                     mobileFabBranch: null,
-                    noteItems: [],
                     panels: {
-                        attendance: Boolean(config.openAttendanceForm),
                         task: Boolean(config.openTaskForm),
                         todo: Boolean(config.openTodoForm),
                     },
-                    linkTaskToAttendance: Boolean(config.linkTaskToAttendance),
+                    quickItemTitle: '',
+                    quickItemType: 'follow-up',
+                    quickItems: [],
+                    storageKey: config.storageKey,
+                    attendanceStatuses: config.attendanceStatuses ?? {},
+                    attendanceSaveUrl: config.attendanceSaveUrl || '',
+                    attendanceCalendarSyncEvent: config.attendanceCalendarSyncEvent || 'attendance-calendar-sync',
+                    attendanceCalendarSelectionEvent: config.attendanceCalendarSelectionEvent ||
+                        'attendance-calendar-selection-sync',
+                    attendanceFormDraft: config.attendanceFormDraft ?? {},
+                    hasAttendanceFormDraft: Boolean(config.hasAttendanceFormDraft),
+                    openAttendanceDialogOnInit: Boolean(config.openAttendanceModal),
+                    attendanceSubmitting: false,
+                    attendanceDeleting: false,
+                    attendanceFormErrors: {},
+                    attendanceNotice: null,
                     attendanceForm: {
                         absensi_id: '',
                         tanggal: '',
@@ -107,19 +159,9 @@
                         status: config.attendanceStatuses?.hadir ?? '',
                         topik: '',
                     },
-                    quickItemTitle: '',
-                    quickItemType: 'follow-up',
-                    quickItems: [],
-                    storageKey: config.storageKey,
                     doneStatus: config.doneStatus,
                     progressStatus: config.progressStatus,
                     openStatus: config.openStatus,
-                    attendanceStatuses: config.attendanceStatuses ?? {},
-                    attendanceFormDraft: config.attendanceFormDraft ?? {},
-                    hasAttendanceFormDraft: Boolean(config.hasAttendanceFormDraft),
-                    noteItemsDraft: Array.isArray(config.noteItemsDraft) ? config.noteItemsDraft : [],
-                    hasNoteDraft: Boolean(config.hasNoteDraft),
-                    totalAttendanceNotes: Number(config.totalAttendanceNotes || 1),
 
                     init() {
                         this.loadQuickItems();
@@ -132,28 +174,23 @@
                             this.selectedTaskId = this.tasks[0] ? Number(this.tasks[0].id) : null;
                         }
 
-                        if (this.selectedAttendanceId && this.selectedAttendance) {
-                            this.loadSelectedAttendanceState();
-                        } else if (this.attendances.length > 0) {
-                            this.selectedAttendanceId = Number(this.attendances[0].id);
-                            this.loadSelectedAttendanceState();
+                        if (this.hasAttendanceFormDraft) {
+                            this.attendanceForm = this.normalizeAttendanceForm(this.attendanceFormDraft);
+                            this.selectedAttendanceId = this.attendanceForm.absensi_id
+                                ? Number(this.attendanceForm.absensi_id)
+                                : null;
+                        } else if (this.selectedAttendance) {
+                            this.loadSelectedAttendanceForm();
                         } else {
                             this.prepareNewAttendance();
                         }
 
-                        if (this.hasAttendanceFormDraft) {
-                            this.attendanceForm = this.normalizeAttendanceForm(this.attendanceFormDraft);
-                            this.panels.attendance = true;
+                        if (this.openAttendanceDialogOnInit) {
+                            this.$nextTick(() => this.showDialog('attendance-focus-modal'));
                         }
 
-                        if (this.hasNoteDraft) {
-                            this.noteItems = this.normalizeNoteItems(this.noteItemsDraft);
-                            this.notesMode = 'edit';
-                        }
-
-                        if (!this.selectedAttendance && this.attendances.length === 0) {
-                            this.linkTaskToAttendance = false;
-                        }
+                        this.dispatchAttendanceCalendarSync();
+                        this.$nextTick(() => this.dispatchAttendanceCalendarSelection(this.attendanceForm.tanggal, true));
                     },
 
                     get filteredTasks() {
@@ -243,14 +280,33 @@
                         document.getElementById(id)?.close();
                     },
 
+                    openAttendanceModal() {
+                        if (!this.selectedAttendance && !this.hasAttendanceFormDraft) {
+                            this.prepareNewAttendance();
+                        }
+
+                        this.showDialog('attendance-focus-modal');
+                    },
+
+                    attendanceError(field) {
+                        return this.attendanceFormErrors[field] || null;
+                    },
+
+                    setAttendanceNotice(message, type = 'success') {
+                        this.attendanceNotice = {
+                            message,
+                            type,
+                        };
+                    },
+
+                    clearAttendanceFeedback() {
+                        this.attendanceFormErrors = {};
+                        this.attendanceNotice = null;
+                    },
+
                     focusTask(id) {
                         this.selectedTaskId = Number(id);
                         this.scrollToSection('task-board');
-                    },
-
-                    focusAttendance(id) {
-                        this.selectAttendance(id);
-                        this.activateWorkspaceTab('attendance', 'attendance');
                     },
 
                     scrollToSection(id) {
@@ -270,20 +326,6 @@
                         }
 
                         return this.tasks.filter((task) => this.matchesTaskFilter(task, filter)).length;
-                    },
-
-                    selectedAttendanceTasks() {
-                        if (!this.selectedAttendanceId) {
-                            return [];
-                        }
-
-                        return this.tasks.filter((task) => {
-                            return Number(task.absensi_id) === Number(this.selectedAttendanceId);
-                        });
-                    },
-
-                    selectedAttendanceTaskCount() {
-                        return this.selectedAttendanceTasks().length;
                     },
 
                     matchesTaskFilter(task, filter = this.taskFilter) {
@@ -384,7 +426,7 @@
 
                     attendanceLabel(attendance = this.selectedAttendance) {
                         if (!attendance) {
-                            return 'Belum memilih absensi';
+                            return 'Absensi baru';
                         }
 
                         return attendance.meeting_number
@@ -413,13 +455,37 @@
                     },
 
                     selectAttendance(id) {
+                        this.clearAttendanceFeedback();
                         this.selectedAttendanceId = Number(id);
-                        this.loadSelectedAttendanceState();
-                        this.workspaceTab = 'attendance';
-                        this.panels.attendance = true;
+                        this.loadSelectedAttendanceForm();
                     },
 
-                    loadSelectedAttendanceState() {
+                    handleAttendanceCalendarSelect(event) {
+                        const attendanceId = Number(event?.attendanceId);
+
+                        if (!attendanceId) {
+                            return;
+                        }
+
+                        this.selectAttendance(attendanceId);
+                    },
+
+                    handleAttendanceCalendarDateSelect(date) {
+                        if (!date) {
+                            return;
+                        }
+
+                        const existingAttendance = this.findAttendanceByDate(date);
+
+                        if (existingAttendance) {
+                            this.selectAttendance(existingAttendance.id);
+                            return;
+                        }
+
+                        this.prepareNewAttendance(date);
+                    },
+
+                    loadSelectedAttendanceForm() {
                         const attendance = this.selectedAttendance;
 
                         if (!attendance) {
@@ -434,22 +500,18 @@
                             status: attendance.status ?? this.attendanceStatuses.hadir,
                             topik: attendance.topic ?? '',
                         });
-
-                        this.noteItems = this.normalizeNoteItems(attendance.notes);
                     },
 
-                    prepareNewAttendance() {
+                    prepareNewAttendance(date = this.today()) {
+                        this.clearAttendanceFeedback();
                         this.selectedAttendanceId = null;
-                        this.notesMode = 'edit';
-                        this.panels.attendance = true;
                         this.attendanceForm = this.normalizeAttendanceForm({
                             absensi_id: '',
-                            tanggal: this.today(),
+                            tanggal: date || this.today(),
                             pertemuan_ke: this.nextMeetingNumber(),
                             status: this.attendanceStatuses.hadir,
                             topik: '',
                         });
-                        this.noteItems = [this.makeEmptyNote()];
                     },
 
                     normalizeAttendanceForm(form) {
@@ -462,67 +524,235 @@
                         };
                     },
 
-                    normalizeNoteItems(items) {
-                        const normalized = (Array.isArray(items) ? items : [])
-                            .map((note) => ({
-                                localId: this.makeNoteId(),
-                                judul: note?.judul ?? '',
-                                isi: note?.isi ?? '',
-                            }))
-                            .filter((note) => {
-                                return String(note.judul).trim() !== '' || String(note.isi).trim() !== '';
-                            });
-
-                        return normalized.length > 0 ? normalized : [this.makeEmptyNote()];
-                    },
-
-                    previewNotes() {
-                        return this.noteItems.filter((note) => {
-                            return String(note.judul).trim() !== '' || String(note.isi).trim() !== '';
-                        });
-                    },
-
-                    filledNoteCount() {
-                        return this.previewNotes().length;
-                    },
-
-                    addNote() {
-                        this.noteItems.push(this.makeEmptyNote());
-                        this.notesMode = 'edit';
-                    },
-
-                    removeNote(idx) {
-                        if (this.noteItems.length <= 1) {
-                            this.noteItems = [this.makeEmptyNote()];
-                            return;
-                        }
-
-                        this.noteItems.splice(idx, 1);
-                    },
-
-                    makeEmptyNote() {
-                        return {
-                            localId: this.makeNoteId(),
-                            judul: '',
-                            isi: '',
-                        };
-                    },
-
-                    makeNoteId() {
-                        return Date.now().toString(36) + Math.random().toString(36).slice(2);
-                    },
-
                     today() {
-                        return new Date().toISOString().slice(0, 10);
+                        const today = new Date();
+                        const offset = today.getTimezoneOffset();
+                        return new Date(today.getTime() - (offset * 60 * 1000)).toISOString().slice(0, 10);
                     },
 
                     nextMeetingNumber() {
                         const maxMeeting = this.attendances.reduce((max, attendance) => {
-                            const current = Number(attendance.meeting_number) || 1;
+                            const current = Number(attendance.meeting_number) || 0;
                             return Math.max(max, current);
                         }, 0);
 
                         return maxMeeting + 1;
+                    },
+
+                    findAttendanceByDate(date) {
+                        return this.attendances.find((attendance) => attendance.date === date) || null;
+                    },
+
+                    sortAttendances() {
+                        this.attendances = [...this.attendances].sort((left, right) => {
+                            const leftDate = left.date || '';
+                            const rightDate = right.date || '';
+
+                            if (leftDate !== rightDate) {
+                                return rightDate.localeCompare(leftDate);
+                            }
+
+                            const leftMeeting = Number(left.meeting_number) || 0;
+                            const rightMeeting = Number(right.meeting_number) || 0;
+
+                            if (leftMeeting !== rightMeeting) {
+                                return rightMeeting - leftMeeting;
+                            }
+
+                            return Number(right.id) - Number(left.id);
+                        });
+                    },
+
+                    upsertAttendance(attendance) {
+                        const index = this.attendances.findIndex((entry) => Number(entry.id) === Number(attendance.id));
+
+                        if (index === -1) {
+                            this.attendances.push(attendance);
+                        } else {
+                            this.attendances.splice(index, 1, attendance);
+                        }
+
+                        this.sortAttendances();
+                    },
+
+                    removeAttendanceById(id) {
+                        this.attendances = this.attendances.filter((entry) => Number(entry.id) !== Number(id));
+                    },
+
+                    attendanceCalendarEvents() {
+                        return this.attendances.map((attendance) => {
+                            const descriptionParts = [];
+
+                            if (attendance.topic) {
+                                descriptionParts.push(attendance.topic);
+                            }
+
+                            if (Number(attendance.notes_count) > 0) {
+                                descriptionParts.push(attendance.notes_count + ' catatan');
+                            }
+
+                            return {
+                                id: 'attendance-' + attendance.id,
+                                title: attendance.meeting_number
+                                    ? 'Pertemuan ' + attendance.meeting_number
+                                    : 'Absensi Kuliah',
+                                start: attendance.date,
+                                allDay: true,
+                                color: this.attendanceCalendarColor(attendance.status),
+                                extendedProps: {
+                                    type: 'custom',
+                                    eventId: 'attendance-' + attendance.id,
+                                    attendanceId: attendance.id,
+                                    location: attendance.status_label,
+                                    description: descriptionParts.join(' • '),
+                                    status: attendance.status,
+                                    color: this.attendanceCalendarColor(attendance.status),
+                                },
+                            };
+                        });
+                    },
+
+                    attendanceCalendarColor(status) {
+                        if (status === this.attendanceStatuses.hadir) {
+                            return 'success';
+                        }
+
+                        if (status === this.attendanceStatuses.izin) {
+                            return 'info';
+                        }
+
+                        if (status === this.attendanceStatuses.sakit) {
+                            return 'warning';
+                        }
+
+                        if (status === this.attendanceStatuses.alpha) {
+                            return 'error';
+                        }
+
+                        return 'primary';
+                    },
+
+                    dispatchAttendanceCalendarSync() {
+                        window.dispatchEvent(new CustomEvent(this.attendanceCalendarSyncEvent, {
+                            detail: {
+                                events: this.attendanceCalendarEvents(),
+                            },
+                        }));
+                    },
+
+                    dispatchAttendanceCalendarSelection(date = this.attendanceForm.tanggal, syncMonth = false) {
+                        if (!this.attendanceCalendarSelectionEvent) {
+                            return;
+                        }
+
+                        window.dispatchEvent(new CustomEvent(this.attendanceCalendarSelectionEvent, {
+                            detail: {
+                                date: date || null,
+                                syncMonth,
+                            },
+                        }));
+                    },
+
+                    normalizeValidationErrors(errors = {}) {
+                        return Object.entries(errors).reduce((carry, [field, messages]) => {
+                            carry[field] = Array.isArray(messages) ? messages[0] : messages;
+                            return carry;
+                        }, {});
+                    },
+
+                    async submitAttendanceForm() {
+                        this.attendanceSubmitting = true;
+                        this.attendanceFormErrors = {};
+                        this.attendanceNotice = null;
+
+                        const formData = new FormData();
+                        formData.append('absensi_id', this.attendanceForm.absensi_id || '');
+                        formData.append('tanggal', this.attendanceForm.tanggal || '');
+                        formData.append('pertemuan_ke', this.attendanceForm.pertemuan_ke || '');
+                        formData.append('status', this.attendanceForm.status || '');
+                        formData.append('topik', this.attendanceForm.topik || '');
+
+                        try {
+                            const response = await fetch(this.attendanceSaveUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                                body: formData,
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                this.attendanceFormErrors = this.normalizeValidationErrors(data.errors || {});
+                                this.setAttendanceNotice(data.message || 'Gagal menyimpan absensi.', 'error');
+                                return;
+                            }
+
+                            this.upsertAttendance(data.attendance);
+                            this.selectedAttendanceId = Number(data.attendance.id);
+                            this.loadSelectedAttendanceForm();
+                            this.setAttendanceNotice(data.message || 'Data absensi berhasil disimpan.');
+                            this.dispatchAttendanceCalendarSync();
+                        } catch (error) {
+                            this.setAttendanceNotice('Terjadi kesalahan saat menyimpan absensi.', 'error');
+                        } finally {
+                            this.attendanceSubmitting = false;
+                        }
+                    },
+
+                    async deleteSelectedAttendance() {
+                        const attendance = this.selectedAttendance;
+
+                        if (!attendance || !attendance.delete_url) {
+                            return;
+                        }
+
+                        if (!window.confirm('Hapus data absensi terpilih?')) {
+                            return;
+                        }
+
+                        this.attendanceDeleting = true;
+                        this.attendanceNotice = null;
+
+                        try {
+                            const response = await fetch(attendance.delete_url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                },
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                                this.setAttendanceNotice(data.message || 'Gagal menghapus absensi.', 'error');
+                                return;
+                            }
+
+                            this.removeAttendanceById(data.deleted_id ?? attendance.id);
+
+                            if (data.next_attendance_id) {
+                                this.selectedAttendanceId = Number(data.next_attendance_id);
+                                this.loadSelectedAttendanceForm();
+                            } else if (this.attendances[0]) {
+                                this.selectedAttendanceId = Number(this.attendances[0].id);
+                                this.loadSelectedAttendanceForm();
+                            } else {
+                                this.prepareNewAttendance();
+                            }
+
+                            this.setAttendanceNotice(data.message || 'Data absensi berhasil dihapus.');
+                            this.dispatchAttendanceCalendarSync();
+                        } catch (error) {
+                            this.setAttendanceNotice('Terjadi kesalahan saat menghapus absensi.', 'error');
+                        } finally {
+                            this.attendanceDeleting = false;
+                        }
                     },
 
                     relatedItemLabel(type) {

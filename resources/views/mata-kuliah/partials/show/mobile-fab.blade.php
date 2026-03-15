@@ -28,8 +28,6 @@
                 </div>
 
                 <div class="mt-3 flex items-center gap-2">
-                    <span class="inline-flex items-center rounded-full bg-base-200 px-3 py-1 text-[11px] font-medium text-base-content/75"
-                        x-text="selectedAttendance ? attendanceLabel(selectedAttendance) : 'Belum pilih absensi'"></span>
                     <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-base-300 px-2 text-[11px] font-semibold text-base-content/70"
                         x-text="selectedTask ? selectedTask.title.charAt(0).toUpperCase() : '-'"></span>
                 </div>
@@ -95,7 +93,7 @@
                                 </span>
                                 <div>
                                     <div class="text-sm font-semibold text-base-content">Panel Fokus</div>
-                                    <div class="text-[11px] leading-4 text-base-content/45">Papan, tab workspace, dan parkir</div>
+                                    <div class="text-[11px] leading-4 text-base-content/45">Papan tugas, tab aksi, dan parkir</div>
                                 </div>
                             </div>
                             <x-heroicon-o-chevron-right class="h-4 w-4 transition"
@@ -113,13 +111,6 @@
 
                             <button type="button"
                                 class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('attendance', 'attendance'); closeMobileFab()">
-                                <x-heroicon-o-academic-cap class="h-4 w-4 text-base-content/55" />
-                                Tab absensi
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
                                 @click="activateWorkspaceTab('action'); closeMobileFab()">
                                 <x-heroicon-o-bolt class="h-4 w-4 text-base-content/55" />
                                 Tab aksi
@@ -130,65 +121,6 @@
                                 @click="activateWorkspaceTab('parking'); closeMobileFab(); $nextTick(() => $refs.quickItemInput?.focus())">
                                 <x-heroicon-o-bookmark-square class="h-4 w-4 text-base-content/55" />
                                 Tab parkir fokus
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <button type="button"
-                            class="flex w-full items-center justify-between rounded-2xl border px-3.5 py-3 text-left transition duration-200"
-                            :class="mobileFabBranch === 'attendance'
-                                ? 'border-primary/70 bg-primary/[0.05] shadow-lg shadow-primary/10'
-                                : 'border-base-300/70 bg-base-100 hover:border-base-300 hover:bg-base-200/35'"
-                            @click="toggleMobileFabBranch('attendance')">
-                            <div class="flex items-center gap-3">
-                                <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-success/10 text-success">
-                                    <x-heroicon-o-user-plus class="h-4 w-4" />
-                                </span>
-                                <div>
-                                    <div class="text-sm font-semibold text-base-content">Absensi</div>
-                                    <div class="text-[11px] leading-4 text-base-content/45">Pertemuan, form, dan catatan</div>
-                                </div>
-                            </div>
-                            <x-heroicon-o-chevron-right class="h-4 w-4 transition"
-                                x-bind:class="mobileFabBranch === 'attendance' ? 'rotate-90 text-primary' : 'text-base-content/25'" />
-                        </button>
-
-                        <div x-show="mobileFabBranch === 'attendance'" x-transition
-                            class="ml-5 space-y-2 border-l border-base-300/60 pl-4">
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('attendance', 'attendance'); closeMobileFab()">
-                                <x-heroicon-o-academic-cap class="h-4 w-4 text-base-content/55" />
-                                Kelola absensi
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="prepareNewAttendance(); activateWorkspaceTab('attendance', 'attendance'); closeMobileFab()">
-                                <x-heroicon-o-plus class="h-4 w-4 text-base-content/55" />
-                                Pertemuan baru
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('attendance'); togglePanel('attendance'); closeMobileFab()">
-                                <x-heroicon-o-pencil-square class="h-4 w-4 text-base-content/55" />
-                                <span x-text="panels.attendance ? 'Tutup form absensi' : 'Buka form absensi'"></span>
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('attendance'); notesMode = 'edit'; closeMobileFab()">
-                                <x-heroicon-o-document-text class="h-4 w-4 text-base-content/55" />
-                                Edit catatan pertemuan
-                            </button>
-
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition hover:bg-base-200"
-                                @click="activateWorkspaceTab('attendance'); notesMode = 'preview'; closeMobileFab()">
-                                <x-heroicon-o-eye class="h-4 w-4 text-base-content/55" />
-                                Preview catatan pertemuan
                             </button>
                         </div>
                     </div>
@@ -265,14 +197,6 @@
                                 Edit tugas terpilih
                             </button>
 
-                            <button type="button"
-                                class="flex w-full items-center gap-3 rounded-xl bg-base-200/65 px-4 py-3 text-left text-[13px] font-medium text-base-content transition"
-                                :class="selectedTask?.attendance_id ? 'hover:bg-base-200' : 'cursor-not-allowed opacity-45'"
-                                :disabled="!selectedTask?.attendance_id"
-                                @click="if (!selectedTask?.attendance_id) return; focusAttendance(selectedTask.attendance_id); closeMobileFab()">
-                                <x-heroicon-o-link class="h-4 w-4 text-base-content/55" />
-                                Buka absensi terkait
-                            </button>
                         </div>
                     </div>
                 </div>

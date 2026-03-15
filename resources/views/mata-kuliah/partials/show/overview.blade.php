@@ -29,8 +29,8 @@
                     {{ $mataKuliah->nama }}
                 </h1>
                 <p class="mt-2 max-w-2xl text-xs leading-5 text-base-content/65 sm:text-sm sm:leading-6">
-                    Kelola pertemuan kuliah, simpan catatan absensi, dan pantau tugas yang terkait
-                    dari satu workspace fokus yang sama.
+                    Workspace fokus ini dirapikan agar kamu bisa memilih tugas, mengejar deadline,
+                    dan menjaga progres belajar dari satu halaman kerja yang sama.
                 </p>
             </div>
 
@@ -94,36 +94,34 @@
                 <div class="mt-4 space-y-3">
                     <div class="flex items-center justify-between rounded-md bg-base-200/70 px-4 py-3">
                         <div>
-                            <div class="text-xs uppercase tracking-wide text-base-content/45">Absensi Tercatat</div>
-                            <div class="font-medium text-base-content">{{ $totalAbsensi }} pertemuan</div>
+                            <div class="text-xs uppercase tracking-wide text-base-content/45">Tugas Aktif</div>
+                            <div class="font-medium text-base-content">{{ $tugasAktif }} dari {{ $totalTugas }} tugas</div>
                         </div>
                         <div class="text-right text-xs text-base-content/65 sm:text-sm">
-                            {{ $persentaseKehadiran }}% hadir
+                            {{ $tugasSelesai }} selesai
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between rounded-md bg-base-200/70 px-4 py-3">
                         <div>
-                            <div class="text-xs uppercase tracking-wide text-base-content/45">Catatan Pertemuan</div>
-                            <div class="font-medium text-base-content"
-                                x-text="selectedAttendance ? attendanceLabel(selectedAttendance) : 'Belum memilih absensi'">
-                            </div>
+                            <div class="text-xs uppercase tracking-wide text-base-content/45">Checklist</div>
+                            <div class="font-medium text-base-content">{{ $todoSelesai }}/{{ $totalTodo }} item selesai</div>
                         </div>
                         <div class="text-right text-xs text-base-content/65 sm:text-sm">
-                            <span x-text="selectedAttendance ? filledNoteCount() : totalAttendanceNotes"></span> item
+                            {{ $rataRataProgress }}% progres rata-rata
                         </div>
                     </div>
 
                     <div class="hidden grid-cols-2 gap-2 sm:grid">
                         <x-ui.button type="ghost" size="sm" :isSubmit="false" class="flex-1"
-                            @click="activateWorkspaceTab('attendance', 'attendance')">
-                            <x-heroicon-o-user-plus class="h-4 w-4" />
-                            Kelola Absensi
-                        </x-ui.button>
-                        <x-ui.button type="ghost" size="sm" :isSubmit="false" class="flex-1"
                             @click="activateWorkspaceTab('action', 'task')">
                             <x-heroicon-o-plus class="h-4 w-4" />
                             Tambah Tugas
+                        </x-ui.button>
+                        <x-ui.button type="ghost" size="sm" :isSubmit="false" class="flex-1"
+                            @click="activateWorkspaceTab('action', 'todo')">
+                            <x-heroicon-o-list-bullet class="h-4 w-4" />
+                            Tambah Checklist
                         </x-ui.button>
                     </div>
                 </div>
@@ -132,34 +130,28 @@
     </div>
 </x-ui.card>
 
-<div class="grid grid-cols-2 gap-4 xl:grid-cols-6">
-    <x-ui.stat title="Pertemuan" :value="$totalAbsensi" description="riwayat absensi">
+<div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+    <x-ui.stat title="Total Tugas" :value="$totalTugas" description="semua tugas mata kuliah">
         <x-slot:icon>
-            <x-heroicon-o-academic-cap class="h-8 w-8 text-primary" />
+            <x-heroicon-o-rectangle-stack class="h-8 w-8 text-primary" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Kehadiran" :value="$persentaseKehadiran . '%'" description="{{ $hadirCount }} pertemuan hadir">
+    <x-ui.stat title="Tugas Aktif" :value="$tugasAktif" description="masih perlu dikerjakan">
+        <x-slot:icon>
+            <x-heroicon-o-bolt class="h-8 w-8 text-warning" />
+        </x-slot:icon>
+    </x-ui.stat>
+
+    <x-ui.stat title="Selesai" :value="$tugasSelesai" description="{{ $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0 }}% dari total tugas">
         <x-slot:icon>
             <x-heroicon-o-check-circle class="h-8 w-8 text-success" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Izin / Sakit" :value="$izinSakitCount" description="tercatat di absensi">
+    <x-ui.stat title="Checklist" :value="$todoSelesai . '/' . $totalTodo" description="item checklist selesai">
         <x-slot:icon>
-            <x-heroicon-o-document-text class="h-8 w-8 text-warning" />
-        </x-slot:icon>
-    </x-ui.stat>
-
-    <x-ui.stat title="Alpha" :value="$alphaCount" description="perlu perhatian">
-        <x-slot:icon>
-            <x-heroicon-o-x-circle class="h-8 w-8 text-error" />
-        </x-slot:icon>
-    </x-ui.stat>
-
-    <x-ui.stat title="Tugas Aktif" :value="$tugasAktif" description="dari {{ $totalTugas }} total tugas">
-        <x-slot:icon>
-            <x-heroicon-o-clipboard-document-list class="h-8 w-8 text-secondary" />
+            <x-heroicon-o-list-bullet class="h-8 w-8 text-secondary" />
         </x-slot:icon>
     </x-ui.stat>
 

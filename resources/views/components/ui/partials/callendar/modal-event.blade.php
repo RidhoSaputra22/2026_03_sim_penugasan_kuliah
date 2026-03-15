@@ -8,15 +8,17 @@
 
         </div>
     </x-slot:title>
-    <x-slot:modal-actions position="top-right">
-        <button class=" btn btn-success btn-sm gap-1" @click="openCreateEvent()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Event
-            </button>
-    </x-slot:modal-actions>
+    @if ($allowEventCrud)
+        <x-slot:modal-actions position="top-right">
+            <button class=" btn btn-success btn-sm gap-1" @click="openCreateEvent()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tambah Event
+                </button>
+        </x-slot:modal-actions>
+    @endif
 
     <div class="flex items-center justify-between mb-3">
         <p x-show="dragRangeLabel" class="text-xs text-base-content/50" x-text="dragRangeLabel"></p>
@@ -64,12 +66,13 @@
                             x-text="event.type === 'deadline'
                                 ? 'Deadline Tugas'
                                 : event.type === 'custom'
-                                    ? 'Event Lainnya'
+                                    ? customEventLabel
                                     : 'Jadwal Kuliah'"></span>
                     </div>
 
                     {{-- Edit / Delete buttons for custom events --}}
-                    <template x-if="event.type === 'custom'">
+                    @if ($allowEventCrud)
+                        <template x-if="event.type === 'custom'">
                         <div class="flex items-center gap-1 ml-auto flex-shrink-0">
                             <button class="btn btn-xs btn-ghost" :class="getEventTextClass(event.color)"
                                 @click.stop="openEditEvent(event)" title="Edit">
@@ -89,7 +92,8 @@
                                 </svg>
                             </button>
                         </div>
-                    </template>
+                        </template>
+                    @endif
                 </div>
 
                 {{-- Jadwal details --}}

@@ -1,7 +1,35 @@
 
-@props(['events' => []])
+@props([
+    'events' => [],
+    'mode' => 'default',
+    'selectedDate' => null,
+    'showScheduleLegend' => true,
+    'showDeadlineLegend' => true,
+    'showCustomLegend' => true,
+    'customLegendLabel' => 'Event Custom',
+    'allowEventCrud' => true,
+    'interactive' => true,
+    'syncEventName' => null,
+    'eventClickName' => null,
+    'dateClickName' => null,
+    'selectionSyncEvent' => null,
+])
 
-<div x-data="kalenderApp()" x-init="init()" {{ $attributes->merge(['class' => '']) }}>
+@php
+    $isSlim = $mode === 'slim';
+@endphp
+
+<div x-data="kalenderApp(@js([
+    'mode' => $mode,
+    'selectedDate' => $selectedDate,
+    'customLegendLabel' => $customLegendLabel,
+    'allowEventCrud' => $allowEventCrud,
+    'interactive' => $interactive,
+    'syncEventName' => $syncEventName,
+    'eventClickName' => $eventClickName,
+    'dateClickName' => $dateClickName,
+    'selectionSyncEvent' => $selectionSyncEvent,
+]))" x-init="init()" {{ $attributes->merge(['class' => '']) }}>
     @include('components.ui.partials.callendar.navigation')
     @include('components.ui.partials.callendar.grid')
     @include('components.ui.partials.callendar.modal-event')
@@ -10,7 +38,7 @@
 
 @push('scripts')
     <script>
-        function kalenderApp() {
+        function kalenderApp(config = {}) {
             return {
                 currentDate: new Date(),
                 events: @json($events),
@@ -19,6 +47,14 @@
                 modalEvents: [],
                 modalDate: '',
                 modalDateObj: null,
+                selectedDate: config.selectedDate || null,
+                customEventLabel: config.customLegendLabel || 'Event Custom',
+                allowEventCrud: Boolean(config.allowEventCrud ?? true),
+                interactive: Boolean(config.interactive ?? true),
+                syncEventName: config.syncEventName || null,
+                eventClickName: config.eventClickName || null,
+                dateClickName: config.dateClickName || null,
+                selectionSyncEvent: config.selectionSyncEvent || null,
 
                 colorOptions: [{
                         value: 'primary',
@@ -72,12 +108,133 @@
                 dragEndIndex: null,
 
                 init() {
+                    this.selectedDate = this.normalizeDateInput(this.selectedDate);
                     this.normalizeInitialEvents();
                     this.render();
+                    this.registerSyncListener();
+                    this.registerSelectionListener();
 
                     document.addEventListener('mouseup', () => {
                         if (this.isDragging) this.onDragEnd();
                     });
+                },
+
+                registerSyncListener() {
+                    if (!this.syncEventName) {
+                        return;
+                    }
+
+                    window.addEventListener(this.syncEventName, (event) => {
+                        this.replaceExternalEvents(event.detail?.events || []);
+                    });
+                },
+
+                replaceExternalEvents(events) {
+                    this.events = Array.isArray(events) ? events : [];
+                    this.normalizeInitialEvents();
+                    this.render();
+                },
+
+                registerSelectionListener() {
+                    if (!this.selectionSyncEvent) {
+                        return;
+                    }
+
+                    window.addEventListener(this.selectionSyncEvent, (event) => {
+                        this.updateSelectedDate(event.detail?.date || null, {
+                            syncMonth: event.detail?.syncMonth !== false,
+                        });
+                    });
+                },
+
+                normalizeDateInput(date) {
+                    if (!date) {
+                        return null;
+                    }
+
+                    const normalized = String(date).trim().substring(0, 10);
+
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+                        return normalized;
+                    }
+
+                    const parsed = new Date(date);
+
+                    if (Number.isNaN(parsed.getTime())) {
+                        return null;
+                    }
+
+                    const offset = parsed.getTimezoneOffset();
+
+                    return new Date(parsed.getTime() - (offset * 60 * 1000)).toISOString().slice(0, 10);
+                },
+
+                updateSelectedDate(date, options = {}) {
+                    const normalizedDate = this.normalizeDateInput(date);
+                    this.selectedDate = normalizedDate;
+
+                    if (normalizedDate && options.syncMonth !== false) {
+                        const [year, month] = normalizedDate.split('-').map(Number);
+
+                        if (this.currentDate.getFullYear() !== year || this.currentDate.getMonth() !== month - 1) {
+                            this.currentDate = new Date(year, month - 1, 1);
+                        }
+                    }
+
+                    this.render();
+                },
+
+                isSelectedCell(cell) {
+                    return Boolean(this.selectedDate && cell?.dateStr === this.selectedDate);
+                },
+
+                canDispatchEventClick(event) {
+                    return Boolean(this.eventClickName && event);
+                },
+
+                canDispatchDateClick(cell) {
+                    return Boolean(this.dateClickName && cell?.currentMonth);
+                },
+
+                dispatchExternalEventClick(event) {
+                    if (!this.canDispatchEventClick(event)) {
+                        return;
+                    }
+
+                    this.updateSelectedDate(event.start, {
+                        syncMonth: false,
+                    });
+
+                    window.dispatchEvent(new CustomEvent(this.eventClickName, {
+                        detail: {
+                            event,
+                        },
+                    }));
+                },
+
+                dispatchExternalDateClick(cell) {
+                    if (!this.canDispatchDateClick(cell)) {
+                        return;
+                    }
+
+                    this.updateSelectedDate(cell.dateStr, {
+                        syncMonth: false,
+                    });
+
+                    window.dispatchEvent(new CustomEvent(this.dateClickName, {
+                        detail: {
+                            date: cell.dateStr,
+                            cell,
+                        },
+                    }));
+                },
+
+                handlePassiveCellClick(cell) {
+                    if (this.interactive || !this.canDispatchDateClick(cell)) {
+                        return;
+                    }
+
+                    this.dispatchExternalDateClick(cell);
                 },
 
                 normalizeInitialEvents() {
@@ -263,6 +420,7 @@
                             day: daysInPrevMonth - i,
                             currentMonth: false,
                             isToday: false,
+                            dateStr: null,
                             events: []
                         });
                     }
@@ -306,7 +464,9 @@
                                 events.push({
                                     title: e.title,
                                     type: 'custom',
+                                    id: e.id || null,
                                     eventId: e.extendedProps?.eventId || null,
+                                    attendanceId: e.extendedProps?.attendanceId || null,
                                     start: e.start || null,
                                     end: e.end || null,
                                     location: e.extendedProps?.location || null,
@@ -321,6 +481,7 @@
                             day: d,
                             currentMonth: true,
                             isToday,
+                            dateStr,
                             events
                         });
                     }
@@ -331,6 +492,7 @@
                             day: i,
                             currentMonth: false,
                             isToday: false,
+                            dateStr: null,
                             events: []
                         });
                     }
@@ -395,6 +557,7 @@
                 },
 
                 onCellMouseDown(index, cell) {
+                    if (!this.interactive) return;
                     if (!cell.currentMonth) return;
                     this.isDragging = true;
                     this.dragStartIndex = index;
@@ -402,11 +565,13 @@
                 },
 
                 onCellMouseEnter(index, cell) {
+                    if (!this.interactive) return;
                     if (!this.isDragging) return;
                     if (cell.currentMonth) this.dragEndIndex = index;
                 },
 
                 onDragEnd() {
+                    if (!this.interactive) return;
                     if (!this.isDragging) return;
                     this.isDragging = false;
 
@@ -488,6 +653,7 @@
                 },
 
                 openCreateEvent(startStr = null, endStr = null) {
+                    if (!this.allowEventCrud) return;
                     this.eventForm = {
                         id: null,
                         title: '',
@@ -502,6 +668,7 @@
                 },
 
                 openEditEvent(event) {
+                    if (!this.allowEventCrud) return;
                     this.eventForm = {
                         id: event.eventId,
                         title: event.title,
@@ -520,6 +687,7 @@
                 },
 
                 async submitEventForm() {
+                    if (!this.allowEventCrud) return;
                     this.eventFormErrors = {};
 
                     if (!this.eventForm.title.trim()) {
@@ -618,6 +786,7 @@
                 },
 
                 async deleteEvent(event, idx) {
+                    if (!this.allowEventCrud) return;
                     if (!confirm(`Hapus event "${event.title}"?`)) return;
 
                     try {
