@@ -47,7 +47,7 @@
     };
 @endphp
 
-<div class="w-full">
+<div class="w-full min-w-[200px]">
     @if($label)
         <label class="label" for="{{ $name }}">
             <span class="label-text">
@@ -91,16 +91,12 @@
                     :class="!selectedLabel ? 'text-base-content/40' : ''"
                 ></span>
 
-                <svg class="w-5 h-5 transition-transform" :class="isOpen ? 'rotate-180' : ''" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
+
             </button>
 
             <div
                 x-cloak
                 x-show="isOpen"
-                x-transition
                 class="absolute z-50 w-full mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg"
             >
                 <div class="p-2 border-b border-base-300">
@@ -112,11 +108,7 @@
                             class="input input-bordered w-full pr-8 {{ $searchInputSizeClass }}"
                             @click.stop
                         >
-                        <svg class="w-4 h-4 absolute right-2.5 top-2.5 text-base-content/40" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 9 9 0 0114 0z" />
-                        </svg>
+                        <x-heroicon-s-magnifying-glass class="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-base-content/60" />
                     </div>
                 </div>
 

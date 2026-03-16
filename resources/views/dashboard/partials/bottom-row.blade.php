@@ -12,20 +12,34 @@
                 <p class="text-sm">Tidak ada jadwal besok</p>
             </div>
         @else
-            <div class="space-y-2">
-                @foreach ($jadwalBesok as $jadwal)
-                    <div class="flex items-center gap-3 p-2 rounded-lg bg-base-200/50">
-                        <div class="text-xs font-mono text-base-content/70 w-24 shrink-0">
-                            {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
-                            {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium truncate">{{ $jadwal->nama }}</div>
-                            <div class="text-xs text-base-content/60">{{ $jadwal->dosen }}</div>
-                        </div>
-                        <x-ui.badge type="ghost" size="xs">{{ $jadwal->ruangan }}</x-ui.badge>
-                    </div>
-                @endforeach
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Jam</th>
+                            <th>Mata Kuliah</th>
+                            <th class="hidden sm:block">Ruangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($jadwalBesok as $jadwal)
+                            <tr class="hover">
+                                <td class="font-mono text-sm">
+                                    {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
+                                    {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
+                                    <div class="sm:hidden text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
+                                </td>
+                                <td>
+                                    <div class="font-medium">{{ $jadwal->nama }}</div>
+                                    <div class="text-xs text-base-content/60">{{ $jadwal->dosen }}</div>
+                                </td>
+                                <td class="hidden sm:block">
+                                    <x-ui.badge type="ghost" size="sm">{{ $jadwal->ruangan }}</x-ui.badge>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         @endif
     </x-ui.card>

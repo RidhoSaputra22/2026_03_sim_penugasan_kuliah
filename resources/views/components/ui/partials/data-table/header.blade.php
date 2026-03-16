@@ -20,21 +20,8 @@
     </div>
 
     <form method="GET" action="{{ route(Route::currentRouteName()) }}#{{ Str::slug($title) }}" class="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <div class="relative w-full sm:min-w-64">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-70"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
-                />
-            </svg>
+        <div class="relative w-full sm:min-w-64 flex-1">
+            <x-heroicon-s-magnifying-glass class="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/60 z-10 w-4 h-4" />
 
             <x-ui.input
                 size="sm"
@@ -46,9 +33,7 @@
         </div>
 
         @isset($filters)
-            <div class="flex  items-center gap-2">
-                {{ $filters }}
-            </div>
+            {{ $filters }}
         @endisset
 
         <x-ui.button type="primary" size="sm">Filter</x-ui.button>

@@ -17,44 +17,57 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <x-ui.stat title="Total" :value="$totalTugas">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
         <x-ui.stat title="Selesai" :value="$tugasSelesai">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
         <x-ui.stat title="Progress" :value="$tugasProgress">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
         <x-ui.stat title="Belum" :value="$tugasBelum">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
         <x-ui.stat title="Terlambat" :value="$tugasTerlambat"
             description="{{ $tugasTerlambat > 0 ? 'Perlu perhatian!' : '' }}">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 {{ $tugasTerlambat > 0 ? 'text-error' : 'text-success' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 {{ $tugasTerlambat > 0 ? 'text-error' : 'text-success' }}" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
         <x-ui.stat title="Avg Progress" :value="round($avgProgress) . '%'">
             <x-slot:icon>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-info" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
             </x-slot:icon>
         </x-ui.stat>
@@ -96,7 +109,8 @@
                     <div class="text-xs text-base-content/60">Deadline Minggu Ini</div>
                 </div>
                 <div class="bg-base-200/50 rounded-lg p-3 text-center">
-                    <div class="text-2xl font-bold {{ $tugasTerlambat > 0 ? 'text-error' : 'text-success' }}">{{ $tugasTerlambat }}</div>
+                    <div class="text-2xl font-bold {{ $tugasTerlambat > 0 ? 'text-error' : 'text-success' }}">
+                        {{ $tugasTerlambat }}</div>
                     <div class="text-xs text-base-content/60">Sudah Terlambat</div>
                 </div>
             </div>
@@ -106,19 +120,18 @@
                         <span>Completion Rate</span>
                         <span class="font-mono">{{ round(($tugasSelesai / $totalTugas) * 100) }}%</span>
                     </div>
-                    <progress class="progress progress-success w-full" value="{{ $tugasSelesai }}" max="{{ $totalTugas }}"></progress>
+                    <progress class="progress progress-success w-full" value="{{ $tugasSelesai }}"
+                        max="{{ $totalTugas }}"></progress>
                 </div>
             @endif
         </x-ui.card>
     </div>
 
     {{-- Deadline Calendar Widget --}}
-    <div
-        x-data="taskDeadlineCalendar(@js([
-            'selectedDate' => $defaultTaskDate,
-            'events' => $taskCalendarEvents,
-        ]))"
-        x-init="init()"
+    <div x-data="taskDeadlineCalendar(@js([
+    'selectedDate' => $defaultTaskDate,
+    'events' => $taskCalendarEvents,
+]))" x-init="init()"
         x-on:task-calendar-date-select.window="selectDate($event.detail?.date || null)"
         x-on:task-calendar-event-select.window="selectDateFromEvent($event.detail?.event || null)"
         class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.7fr)_minmax(20rem,1fr)] gap-4 mb-6">
@@ -128,25 +141,17 @@
             <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h3 class="text-sm font-semibold">Kalender Deadline</h3>
-                    <p class="text-xs text-base-content/60">Klik tanggal untuk melihat daftar tugas pada hari tersebut.</p>
+                    <p class="text-xs text-base-content/60">Klik tanggal untuk melihat daftar tugas pada hari tersebut.
+                    </p>
                 </div>
                 <x-ui.button type="ghost" size="sm" :href="route('kalender.index')" :isSubmit="false">
                     Buka Kalender
                 </x-ui.button>
             </div>
 
-            <x-ui.callendar
-                :events="$taskCalendarEvents"
-                mode="slim"
-                :selectedDate="$defaultTaskDate"
-                :showScheduleLegend="false"
-                :showCustomLegend="false"
-                :allowEventCrud="false"
-                :interactive="false"
-                eventClickName="task-calendar-event-select"
-                dateClickName="task-calendar-date-select"
-                selectionSyncEvent="task-calendar-selection-sync"
-            />
+            <x-ui.callendar :events="$taskCalendarEvents" mode="slim" :selectedDate="$defaultTaskDate" :showScheduleLegend="false" :showCustomLegend="false"
+                :allowEventCrud="false" :interactive="false" eventClickName="task-calendar-event-select"
+                dateClickName="task-calendar-date-select" selectionSyncEvent="task-calendar-selection-sync" />
         </div>
 
         <x-ui.card>
@@ -162,7 +167,8 @@
                 <template x-if="selectedTasks.length === 0">
                     <div class="rounded-xl border border-dashed border-base-300 bg-base-200/30 px-4 py-6 text-center">
                         <div class="text-sm font-medium">Tidak ada tugas pada tanggal ini</div>
-                        <p class="mt-1 text-xs text-base-content/60">Klik tanggal lain di kalender untuk melihat deadline pada hari tersebut.</p>
+                        <p class="mt-1 text-xs text-base-content/60">Klik tanggal lain di kalender untuk melihat
+                            deadline pada hari tersebut.</p>
                     </div>
                 </template>
 
@@ -172,11 +178,11 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="truncate font-medium" x-text="task.title"></div>
-                                <div class="mt-1 truncate text-xs text-base-content/60" x-text="task.mata_kuliah"></div>
+                                <div class="mt-1 truncate text-xs text-base-content/60" x-text="task.mata_kuliah">
+                                </div>
                             </div>
                             <div class="flex flex-col items-end gap-1">
-                                <span class="badge badge-xs badge-outline"
-                                    :class="priorityBadgeClass(task.prioritas)"
+                                <span class="badge badge-xs badge-outline" :class="priorityBadgeClass(task.prioritas)"
                                     x-text="priorityLabel(task.prioritas)"></span>
                                 <span class="badge badge-ghost badge-xs" x-text="task.progress + '%'"></span>
                             </div>
@@ -184,8 +190,7 @@
 
                         <div class="mt-3 flex items-center justify-between gap-3 text-xs">
                             <span class="text-base-content/60" x-text="task.deadline_label"></span>
-                            <span class="font-medium"
-                                :class="deadlineTone(task.deadline)"
+                            <span class="font-medium" :class="deadlineTone(task.deadline)"
                                 x-text="deadlineLabel(task.deadline)"></span>
                         </div>
                     </a>
@@ -194,121 +199,43 @@
         </x-ui.card>
     </div>
 
-    {{-- Filters --}}
-    <x-ui.card class="mb-6">
-        <form method="GET" action="{{ route('tugas.index') }}" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[180px]">
-                <x-ui.input name="search" label="Cari" placeholder="Cari judul tugas..." :value="request('search')" />
-            </div>
-            <div class="w-full">
-                <x-ui.select name="status" label="Status" :searchable="false" placeholder="Semua Status"
-                    :options="App\Enums\Status::options()"
-                    :value="request('status')" />
-            </div>
-            <div class="flex-1 min-w-[180px]">
-                <x-ui.select name="mata_kuliah_id" label="Mata Kuliah" :searchable="true" placeholder="Semua Mata Kuliah"
-                    :options="$mataKuliah->pluck('nama', 'id')->toArray()"
-                    :value="request('mata_kuliah_id')" />
-            </div>
-            <x-ui.button type="primary" size="md">Cari</x-ui.button>
-            @if(request()->hasAny(['search', 'status', 'mata_kuliah_id']))
-                <x-ui.button type="ghost" size="md" :href="route('tugas.index')" :isSubmit="false">Reset</x-ui.button>
-            @endif
-        </form>
+
+    <x-ui.card>
+        <x-ui.data-table title="Daftar Tugas"
+        :data="$tugas"
+        model="\App\Models\Tugas"
+        :exclude="[
+            'user_id',
+            'mata_kuliah_id',
+            'absensi_id',
+            'file'
+        ]"
+        :labels="[
+            'judul' => 'Judul',
+            'deskripsi' => 'Deskripsi',
+            'status' => 'Status',
+            'prioritas' => 'Prioritas',
+            'deadline' => 'Deadline',
+            'progress' => 'Progress',
+        ]" :formats="[
+            'status' => 'badge',
+            'prioritas' => 'badge',
+            'deadline' => 'date',
+            'progress' => 'progress',
+            ]" :sortable="['judul', 'deskripsi', 'status', 'prioritas', 'deadline', 'progress']" :bulkActionRoute="route('tugas.bulk-action')" :showRoute="fn($row) => route('tugas.show', $row->id)"
+            :editRoute="fn($row) => route('tugas.edit', $row->id)" :deleteRoute="fn($row) => route('tugas.destroy', $row->id)">
+            <x-slot:filters>
+                  <x-ui.select name="status" :searchable="false" placeholder="Semua Status" :options="App\Enums\Status::options()" :value="request('status')" size="sm"  />
+
+                <x-ui.select name="mata_kuliah_id" :searchable="true"
+                    placeholder="Semua Mata Kuliah" :options="$mataKuliah->pluck('nama', 'id')->toArray()" :value="request('mata_kuliah_id')" size="sm" />
+            </x-slot:filters>
+
+            <x-slot:bulkActions>
+                <option value="set_senin">Set Hari = Senin</option>
+            </x-slot:bulkActions>
+        </x-ui.data-table>
     </x-ui.card>
-
-    {{-- Tugas Cards / Table --}}
-    @if($tugas->isEmpty())
-        <x-ui.card>
-            <div class="text-center py-12 text-base-content/50">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <p class="text-lg font-medium">Belum ada tugas</p>
-                <p class="text-sm mt-1">Tambahkan tugas baru untuk mulai tracking</p>
-            </div>
-        </x-ui.card>
-    @else
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            @foreach($tugas as $item)
-                @php
-                    $statusValue = $item->status instanceof Status ? $item->status->value : (string) $item->status;
-                    $statusEnum = $item->status instanceof Status ? $item->status : Status::tryFrom($statusValue);
-                    $statusBadge = match($statusEnum) {
-                        Status::BELUM => 'error',
-                        Status::PROGRESS => 'warning',
-                        Status::SELESAI => 'success',
-                        Status::COMPLETED => 'success',
-                        Status::CANCELLED => 'ghost',
-                        default => 'ghost',
-                    };
-                    $statusLabel = $statusEnum?->label() ?? $statusValue;
-                    $prioritasBadge = match($item->prioritas ?? '') {
-                        'tinggi' => 'error',
-                        'sedang' => 'warning',
-                        'rendah' => 'info',
-                        default => 'ghost',
-                    };
-                    $daysLeft = now()->diffInDays($item->deadline, false);
-                    $isOverdue = $daysLeft < 0 && $statusValue !== Status::SELESAI->value;
-                @endphp
-                <x-ui.card class="{{ $isOverdue ? 'border-l-4 border-l-error' : '' }}" :href="route('tugas.show', $item->id)">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold truncate">{{ $item->judul }}</h3>
-                            <p class="text-sm text-base-content/60 mt-0.5">{{ $item->mataKuliah->nama ?? '-' }}</p>
-                            @if($item->absensi)
-                                <div class="mt-2 flex flex-wrap items-center gap-2">
-                                    <x-ui.badge type="info" size="xs">
-                                        {{ $item->absensi->pertemuan_ke ? 'Pertemuan ' . $item->absensi->pertemuan_ke : 'Pertemuan terkait' }}
-                                    </x-ui.badge>
-                                    <x-ui.badge type="ghost" size="xs" :outline="true">
-                                        {{ $item->absensi->tanggal?->translatedFormat('d M Y') ?? '-' }}
-                                    </x-ui.badge>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="flex flex-col items-end gap-1">
-                            <x-ui.badge :type="$statusBadge" size="sm">{{ $statusLabel }}</x-ui.badge>
-                            @if ($item->prioritas)
-                                <x-ui.badge :type="$prioritasBadge" size="xs" :outline="true">{{ ucfirst($item->prioritas) }}</x-ui.badge>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="mt-3">
-                        <div class="flex items-center justify-between text-xs text-base-content/60 mb-1">
-                            <span>Progress</span>
-                            <span class="font-mono">{{ $item->progress }}%</span>
-                        </div>
-                        <progress class="progress progress-primary w-full" value="{{ $item->progress }}" max="100"></progress>
-                    </div>
-
-                    <div class="flex items-center justify-between mt-3 text-xs">
-                        <span class="text-base-content/60">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {{ \Carbon\Carbon::parse($item->deadline)->format('d M Y') }}
-                        </span>
-                        @if($isOverdue)
-                            <span class="text-error font-medium">Terlambat!</span>
-                        @elseif($statusValue !== Status::SELESAI->value)
-                            <span class="{{ $daysLeft <= 3 ? 'text-warning' : 'text-base-content/50' }}">
-                                {{ ceil($daysLeft) }} hari lagi
-                            </span>
-                        @else
-                            <span class="text-success font-medium">Selesai</span>
-                        @endif
-                    </div>
-                </x-ui.card>
-            @endforeach
-        </div>
-
-        <div class="mt-6">
-            {{ $tugas->withQueryString()->links() }}
-        </div>
-    @endif
 
     @push('scripts')
         <script>
@@ -380,7 +307,7 @@
                             tinggi: 'badge-error',
                             sedang: 'badge-warning',
                             rendah: 'badge-info',
-                        }[priority] || 'badge-ghost';
+                        } [priority] || 'badge-ghost';
                     },
 
                     dateDiff(deadline) {
@@ -476,7 +403,8 @@
                             }))
                             .filter((task) => task.deadline === this.selectedDate)
                             .sort((left, right) => {
-                                const priorityDelta = (priorityOrder[left.prioritas] ?? 9) - (priorityOrder[right.prioritas] ?? 9);
+                                const priorityDelta = (priorityOrder[left.prioritas] ?? 9) - (priorityOrder[right
+                                    .prioritas] ?? 9);
 
                                 if (priorityDelta !== 0) {
                                     return priorityDelta;

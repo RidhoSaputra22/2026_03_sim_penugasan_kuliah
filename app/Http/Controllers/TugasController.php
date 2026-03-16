@@ -312,4 +312,32 @@ class TugasController extends Controller
 
         return $absensi->id;
     }
+
+    public function bulkAction(Request $request)
+    {
+        $action = $request->input('action');
+        $ids = $request->input('ids', []);
+
+        if (empty($ids) || !in_array($action, ['delete', 'update_status'], true)) {
+            return redirect()->back()->with('error', 'Aksi tidak valid.');
+        }
+
+        $tugasQuery = Tugas::whereIn('id', $ids)->where('user_id', auth()->id());
+
+        if ($action === 'delete') {
+            $tugasQuery->delete();
+            return redirect()->back()->with('success', 'Tugas berhasil dihapus.');
+        }
+
+        if ($action === 'update_status') {
+            $status = $request->input('status');
+            if (!in_array($status, Status::values(), true)) {
+                return redirect()->back()->with('error', 'Status tidak valid.');
+            }
+            $tugasQuery->update(['status' => $status]);
+            return redirect()->back()->with('success', 'Status tugas berhasil diperbarui.');
+        }
+
+        return redirect()->back()->with('error', 'Aksi tidak dikenali.');
+    }
 }

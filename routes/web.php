@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::put('tugas/{tugas}', [TugasController::class, 'update'])->name('tugas.update');
     Route::delete('tugas/{tugas}', [TugasController::class, 'destroy'])->name('tugas.destroy');
     Route::patch('tugas/{tugas}/progress', [TugasController::class, 'updateProgress'])->name('tugas.progress');
+    Route::post('tugas/bulk-action', [TugasController::class, 'bulkAction'])->name('tugas.bulk-action');
 
     // Todo
     Route::resource('todo', TodoController::class);

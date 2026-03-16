@@ -27,7 +27,7 @@
                                 <td class="font-mono text-sm">
                                     {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
                                     {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
-                                    <div class="text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
+                                    <div class="sm:hidden text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
 
                                 </td>
                                 <td>

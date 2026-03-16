@@ -51,7 +51,7 @@
         {{ $attributes }}
     />
 @else
-    <div class="w-full">
+    <div class="w-full min-w-[150px]">
         @if($label)
             <label class="label" for="{{ $inputId }}">
                 <span class="label-text">
