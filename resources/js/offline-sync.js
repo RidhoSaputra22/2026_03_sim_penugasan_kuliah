@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'sim_tugas_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORES = {
     MATA_KULIAH: 'mata_kuliah',
     TUGAS: 'tugas',
