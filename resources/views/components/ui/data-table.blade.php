@@ -27,7 +27,7 @@
 
     @include('components.ui.partials.data-table.filter-info')
 
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap gap-4 items-center justify-between">
         @include('components.ui.partials.data-table.bulk-actions')
         @include('components.ui.partials.data-table.pagination')
     </div>
