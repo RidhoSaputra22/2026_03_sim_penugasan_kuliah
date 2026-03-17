@@ -14,6 +14,7 @@ class StatistikController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $today = now()->startOfDay();
 
         // Tugas per status
         $tugasPerStatus = Tugas::where('user_id', $user->id)
@@ -80,14 +81,18 @@ class StatistikController extends Controller
             ->orderBy('deadline')
             ->with('mataKuliah')
             ->get()
-            ->map(fn($t) => [
-                'judul' => $t->judul,
-                'mata_kuliah' => $t->mataKuliah->nama ?? '-',
-                'deadline' => Carbon::parse($t->deadline)->format('d M'),
-                'days_left' => now()->diffInDays($t->deadline, false),
-                'progress' => $t->progress,
-                'status' => $t->status instanceof Status ? $t->status->value : (string) $t->status,
-            ]);
+            ->map(function ($t) use ($today) {
+                $deadline = Carbon::parse($t->deadline);
+
+                return [
+                    'judul' => $t->judul,
+                    'mata_kuliah' => $t->mataKuliah->nama ?? '-',
+                    'deadline' => $deadline->format('d M'),
+                    'days_left' => $today->diffInDays($deadline->copy()->startOfDay(), false),
+                    'progress' => $t->progress,
+                    'status' => $t->status instanceof Status ? $t->status->value : (string) $t->status,
+                ];
+            });
 
         // Todo completion stats
         $totalTodos = Todo::whereHas('tugas', fn($q) => $q->where('user_id', $user->id))->count();

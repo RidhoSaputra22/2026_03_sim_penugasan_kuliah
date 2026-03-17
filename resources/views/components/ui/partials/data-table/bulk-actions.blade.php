@@ -2,7 +2,7 @@
     <form
         method="POST"
         action="{{ $bulkActionRoute }}"
-        class="flex flex-wrap items-center gap-2 "
+        class="flex items-center gap-2 "
         @submit.prevent="submitBulkAction($event)"
         x-ref="bulkActionForm"
     >
