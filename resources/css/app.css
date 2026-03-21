@@ -48,7 +48,7 @@
 }
 
 .badge {
-    @apply text-xs font-medium text-ellipsis whitespace-nowrap overflow-hidden;
+    @apply text-xs font-medium text-ellipsis whitespace-nowrap overflow-visible;
 }
 
 

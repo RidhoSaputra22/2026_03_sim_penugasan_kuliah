@@ -117,7 +117,7 @@
             });
         }
     }" class="space-y-6">
-        <section class="relative overflow-hidden rounded-md border border-base-200/80 bg-gradient-to-br from-primary/10 via-base-100 to-info/10 shadow-xl">
+        <section class="relative overflow-visible rounded-md border border-base-200/80 bg-gradient-to-br from-primary/10 via-base-100 to-info/10 shadow-xl">
             <div class="absolute -top-16 right-8 h-40 w-40 rounded-full bg-primary/15 blur-3xl"></div>
             <div class="absolute -bottom-20 left-10 h-44 w-44 rounded-full bg-info/15 blur-3xl"></div>
 

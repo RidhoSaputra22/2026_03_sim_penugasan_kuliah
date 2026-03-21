@@ -4,7 +4,7 @@
         : $mataKuliah->hari;
 @endphp
 
-<x-ui.card class="relative overflow-hidden border border-base-300/70 bg-base-100">
+<x-ui.card class="relative overflow-visible border border-base-300/70 bg-base-100">
     <div class="absolute -left-12 top-0 h-40 w-40 rounded-md bg-primary/10 blur-3xl"></div>
     <div class="absolute -right-12 bottom-0 h-48 w-48 rounded-md bg-warning/10 blur-3xl"></div>
 

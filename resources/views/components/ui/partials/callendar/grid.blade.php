@@ -10,8 +10,8 @@
         ? 'font-medium mb-0.5 -mx-1 flex items-center gap-1 select-none'
         : 'font-medium mb-1 -mx-1 flex items-center gap-1 select-none';
     $gridSpanClass = $isSlim
-        ? 'h-3.5 flex items-center text-[8px] font-medium -mx-1 px-1 overflow-hidden truncate select-none'
-        : 'h-4 flex items-center text-[9px] font-medium -mx-1 sm:-mx-1.5 px-1 overflow-hidden truncate select-none';
+        ? 'h-3.5 flex items-center text-[8px] font-medium -mx-1 px-1 overflow-visible truncate select-none'
+        : 'h-4 flex items-center text-[9px] font-medium -mx-1 sm:-mx-1.5 px-1 overflow-visible truncate select-none';
     $gridEventClass = $isSlim
         ? 'text-[8px] sm:text-[9px] leading-tight px-1 py-0.5 rounded truncate cursor-default select-none'
         : 'text-[9px] sm:text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-default select-none';
@@ -28,7 +28,7 @@
     </div>
 
     {{-- Date Grid --}}
-    <div class="grid select-none grid-cols-7 gap-px overflow-hidden rounded-lg border border-base-200 {{ $gridTextClass }}">
+    <div class="grid select-none grid-cols-7 gap-px overflow-visible rounded-lg border border-base-200 {{ $gridTextClass }}">
         <template x-for="(cell, index) in calendarCells" :key="index">
             <div class="{{ $gridCellClass }}"
                 :class="{
