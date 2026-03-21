@@ -47,7 +47,7 @@
     };
 @endphp
 
-<div class="w-full min-w-[200px]">
+<div class="w-full ">
     @if($label)
         <label class="label" for="{{ $name }}">
             <span class="label-text">

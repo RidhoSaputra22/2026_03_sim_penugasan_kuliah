@@ -225,9 +225,9 @@
             ]" :sortable="['judul', 'deskripsi', 'status', 'prioritas', 'deadline', 'progress']" :bulkActionRoute="route('tugas.bulk-action')" :showRoute="fn($row) => route('tugas.show', $row->id)"
             :editRoute="fn($row) => route('tugas.edit', $row->id)" :deleteRoute="fn($row) => route('tugas.destroy', $row->id)">
             <x-slot:filters>
-                  <x-ui.select name="status" :searchable="false" placeholder="Semua Status" :options="App\Enums\Status::options()" :value="request('status')" size="sm"  />
+                <x-ui.select class="min-w-[150px]" name="status" :searchable="false" placeholder="Semua Status" :options="App\Enums\Status::options()" :value="request('status')" size="sm"  />
 
-                <x-ui.select name="mata_kuliah_id" :searchable="true"
+                <x-ui.select class="min-w-[300px]" name="mata_kuliah_id" :searchable="true"
                     placeholder="Semua Mata Kuliah" :options="$mataKuliah->pluck('nama', 'id')->toArray()" :value="request('mata_kuliah_id')" size="sm" />
             </x-slot:filters>
 
