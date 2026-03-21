@@ -35,7 +35,7 @@
             x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-1"
             class="fixed inset-0  flex justify-center items-start mt-20 w-full z-50 sm:absolute sm:top-full sm:right-0 sm:left-auto sm:mt-2 sm:w-96">
-            <x-ui.card class="w-96 overflow-hidden">
+            <x-ui.card compact class="w-96 overflow-hidden">
                 <div class="max-h-80 overflow-y-auto" x-ref="resultsList">
                     <div>
                         <x-ui.input

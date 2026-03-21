@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\MataKuliahController;
 use App\Http\Controllers\ProfileController;
@@ -92,11 +93,5 @@ Route::middleware('auth')->group(function () {
 
     // Event management
     Route::resource('events', \App\Http\Controllers\EventController::class);
-    // Global search (placeholder)
-    Route::get(
-        '/search',
-        function () {
-            return response()->json(['results' => []]);
-        }
-    )->name('global-search');
+    Route::get('/search', GlobalSearchController::class)->name('global-search');
 });
