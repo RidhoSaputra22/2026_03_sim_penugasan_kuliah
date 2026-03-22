@@ -1,6 +1,6 @@
-<x-layouts.app title="Kalender Akademik">
+<x-layouts.app title="Kalender">
     <x-slot:header>
-        <x-layouts.page-header title="Kalender Akademik"
+        <x-layouts.page-header title="Kalender"
             description="Jadwal kuliah dan deadline tugas dalam satu tampilan" />
     </x-slot:header>
 
@@ -30,7 +30,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Kalender --}}
-        <x-ui.callendar :events="$events" class="lg:col-span-2"/>
+        <x-ui.callendar :events="$events" class="lg:col-span-2"  />
 
         {{-- Upcoming list --}}
         <div class="lg:col-span-1 space-y-6" x-data="kalenderApp()" >

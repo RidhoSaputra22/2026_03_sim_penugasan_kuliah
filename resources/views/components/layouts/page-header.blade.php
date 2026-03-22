@@ -17,7 +17,7 @@
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-        <h2 class="text-2xl font-bold text-base-content">{{ $title }}</h2>
+        <h2 class=" text-2xl font-bold text-base-content">{{ $title }}</h2>
         @if($description)
             <p class="text-base-content/60 mt-1">{{ $description }}</p>
         @endif

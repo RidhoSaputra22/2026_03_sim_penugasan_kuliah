@@ -2,7 +2,7 @@
     <form
         method="POST"
         action="{{ $bulkActionRoute }}"
-        class="flex flex-wrap sm:flex-nowrap gap-2 items-center"
+        class="w-full sm:w-auto sm:flex flex-wrap sm:flex-nowrap gap-2  items-center"
         @submit.prevent="submitBulkAction($event)"
         x-ref="bulkActionForm"
     >
@@ -13,6 +13,7 @@
             size="sm"
             placeholder=""
             x-model="bulkAction"
+            class="w-full mb-2 sm:mb-0 sm:min-w-[200px] "
         >
             <option value="">Bulk Action</option>
             <option value="delete">Hapus</option>

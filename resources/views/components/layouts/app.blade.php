@@ -20,11 +20,11 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
     <script>
-        (function () {
+        (function() {
             const savedTheme = localStorage.getItem('theme');
-            const theme = savedTheme
-                ? savedTheme
-                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const theme = savedTheme ?
+                savedTheme :
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
             document.documentElement.setAttribute('data-theme', theme);
         })();
@@ -58,22 +58,26 @@
         {{-- Page content --}}
         <main class="p-4 md:p-6 lg:p-8 min-h-screen">
             {{-- Breadcrumb --}}
-            @if(isset($breadcrumbs))
-            <x-layouts.breadcrumb :items="$breadcrumbs" />
+            @if (isset($breadcrumbs))
+                <x-layouts.breadcrumb :items="$breadcrumbs" />
             @endif
 
             {{-- Flash messages --}}
             <x-ui.toast />
 
             {{-- Page header --}}
-            @if(isset($header))
-            <div class="mb-6">
-                {{ $header }}
-            </div>
+            @if (isset($header))
+                <div class="mb-6">
+                    {{ $header }}
+                </div>
             @endif
 
             {{-- Main slot --}}
             {{ $slot }}
+
+            {{-- Floating Action Button --}}
+            <x-ui.context-fab />
+
         </main>
 
         {{-- Footer --}}

@@ -3,13 +3,13 @@
     <x-slot:title>
         <div class="flex  items-center gap-2 w-full">
             <x-heroicon-o-calendar-days class="h-8 w-8 text-primary/80" />
-            <h3 class=" font-bold text-xl ">Event <span x-text="modalDate"></span></h3>
+            <h3 class=" font-bold text-lg sm:text-xl ">Event <span x-text="modalDate"></span></h3>
             {{-- <div class="w-full"></div> --}}
 
         </div>
     </x-slot:title>
     @if ($allowEventCrud)
-        <x-slot:modal-actions position="top-right">
+        <x-slot:modal-actions position="bottom-right">
             <x-ui.button type="success" size="sm" :isSubmit="false" class="gap-1" @click="openCreateEvent()">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">

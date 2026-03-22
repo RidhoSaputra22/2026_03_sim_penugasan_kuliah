@@ -18,7 +18,7 @@
         </x-ui.button>
 
         {{-- Page title --}}
-        <h1 class="text-lg font-semibold text-base-content ">{{ $title }}</h1>
+        <h1 class="text-lg font-semibold text-base-content truncate w-32 sm:w-auto">{{ $title }}</h1>
     </div>
 
     <div class="flex-1"></div>

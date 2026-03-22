@@ -27,7 +27,7 @@
         </div>
         <div class="block sm:hidden">
             {{-- Search Mobile --}}
-                <x-heroicon-o-magnifying-glass class="h-6 w-6 text-black" @click="open = !open" />
+                <x-heroicon-o-magnifying-glass class="h-6 w-6 " @click="open = !open" />
 
         </div>
         <div x-show="open" x-transition:enter="transition ease-out duration-150"

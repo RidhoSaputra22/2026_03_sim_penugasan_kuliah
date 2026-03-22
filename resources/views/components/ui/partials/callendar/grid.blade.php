@@ -49,7 +49,7 @@
                     :class="cell.isToday || isSelectedCell(cell) ? 'text-primary font-bold' : 'text-base-content/70'">
                     <div :class="cell.isToday ? 'badge badge-primary badge-xs' : isSelectedCell(cell) ? '' : ''">
                         <span x-text="cell.day"></span>
-                        <span x-show="cell.isToday">Hari Ini</span>
+                        <span x-show="cell.isToday" class="hidden sm:block">Hari Ini</span>
                     </div>
                 </div>
 
