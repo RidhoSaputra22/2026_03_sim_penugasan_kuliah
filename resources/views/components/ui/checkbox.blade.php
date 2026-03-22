@@ -103,7 +103,7 @@
 
         @if($helpText)
             <label class="label">
-                <span class="label-text-alt text-base-content/70">{{ $helpText }}</span>
+                <span class="text-wrap label-text-alt text-base-content/70">{{ $helpText }}</span>
             </label>
         @endif
 

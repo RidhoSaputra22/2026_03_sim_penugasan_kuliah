@@ -69,7 +69,7 @@
             </x-ui.select>
 
             <label class="label">
-                <span class="label-text-alt text-base-content/70" x-text="attendanceHelperText()"></span>
+                <span class=" text-wrap label-text-alt text-base-content/70" x-text="attendanceHelperText()"></span>
             </label>
         </div>
 
