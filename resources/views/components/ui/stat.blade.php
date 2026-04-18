@@ -15,9 +15,26 @@
     'description' => null,
     'trend' => null,
     'trendValue' => null,
+    'href' => null,
 ])
 
-<div {{ $attributes->merge(['class' => 'stat bg-base-100 shadow-md rounded-lg p-4']) }}>
+@php
+    $hoverClass = $href
+        ? ' cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
+        : '';
+@endphp
+
+<div
+    {{ $attributes->merge(['class' => 'stat bg-base-100 shadow-md rounded-lg p-4' . $hoverClass]) }}
+    @if ($href)
+        role="link"
+        tabindex="0"
+        data-stat-href="{{ $href }}"
+        aria-label="Buka {{ $title }}"
+        onclick="window.location.href = this.dataset.statHref"
+        onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href = this.dataset.statHref; }"
+    @endif
+>
     @if(isset($icon))
         <div class="stat-figure  ">
             {{ $icon }}

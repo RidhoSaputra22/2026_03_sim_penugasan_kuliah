@@ -1,7 +1,7 @@
 {{-- Two Column Layout --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     {{-- Jadwal Hari Ini --}}
-    <x-ui.card title="Jadwal Hari Ini">
+    <x-ui.card title="Jadwal Hari Ini" :href="route('kalender.index')">
         @if ($jadwalHariIni->isEmpty())
             <div class="text-center py-8 text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 opacity-40" fill="none"
@@ -18,7 +18,6 @@
                         <tr>
                             <th>Jam</th>
                             <th>Mata Kuliah</th>
-                            <th class="hidden sm:block">Ruangan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,15 +26,11 @@
                                 <td class="font-mono text-sm">
                                     {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
                                     {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
-                                    <div class="sm:hidden text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
-
+                                    <div class=" text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
                                 </td>
                                 <td>
                                     <div class="font-medium">{{ $jadwal->nama }}</div>
                                     <div class="text-xs text-base-content/60">{{ $jadwal->dosen }}</div>
-                                </td>
-                                <td class="hidden sm:block">
-                                    <x-ui.badge type="ghost" size="sm">{{ $jadwal->ruangan }}</x-ui.badge>
                                 </td>
                             </tr>
                         @endforeach
@@ -46,7 +41,7 @@
     </x-ui.card>
 
     {{-- Deadline Terdekat --}}
-    <x-ui.card title="Deadline Terdekat">
+    <x-ui.card title="Deadline Terdekat" :href="route('tugas.index', ['deadline_state' => 'mendekat'])">
         @if ($deadlineTerdekat->isEmpty())
             <div class="text-center py-8 text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 opacity-40" fill="none"

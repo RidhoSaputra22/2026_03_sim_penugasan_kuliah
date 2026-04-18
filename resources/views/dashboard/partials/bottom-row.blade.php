@@ -1,7 +1,7 @@
 {{-- Bottom Row: Jadwal Besok + Upcoming Events --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- Jadwal Besok --}}
-    <x-ui.card title="Jadwal Besok">
+    <x-ui.card title="Jadwal Besok" :href="route('kalender.index')">
         @if ($jadwalBesok->isEmpty())
             <div class="text-center py-6 text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-40" fill="none"
@@ -18,7 +18,6 @@
                         <tr>
                             <th>Jam</th>
                             <th>Mata Kuliah</th>
-                            <th class="hidden sm:block">Ruangan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,15 +26,13 @@
                                 <td class="font-mono text-sm">
                                     {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} -
                                     {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
-                                    <div class="sm:hidden text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
+                                    <div class="text-xs text-base-content/60">Ruangan {{ $jadwal->ruangan }}</div>
                                 </td>
                                 <td>
                                     <div class="font-medium">{{ $jadwal->nama }}</div>
                                     <div class="text-xs text-base-content/60">{{ $jadwal->dosen }}</div>
                                 </td>
-                                <td class="hidden sm:block">
-                                    <x-ui.badge type="ghost" size="sm">{{ $jadwal->ruangan }}</x-ui.badge>
-                                </td>
+
                             </tr>
                         @endforeach
                     </tbody>
@@ -45,7 +42,7 @@
     </x-ui.card>
 
     {{-- Upcoming Events --}}
-    <x-ui.card title="Event 7 Hari Kedepan">
+    <x-ui.card title="Event 7 Hari Kedepan" :href="route('kalender.index')">
         @if ($upcomingEvents->isEmpty())
             <div class="text-center py-6 text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-40" fill="none"

@@ -35,6 +35,22 @@ class TugasController extends Controller
             $query->where('mata_kuliah_id', $request->mata_kuliah_id);
         }
 
+        if ($request->filled('deadline_state')) {
+            $deadlineState = (string) $request->deadline_state;
+
+            if ($deadlineState === 'terlambat') {
+                $query
+                    ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+                    ->where('deadline', '<', now());
+            }
+
+            if ($deadlineState === 'mendekat') {
+                $query
+                    ->whereIn('status', [Status::BELUM, Status::PROGRESS])
+                    ->where('deadline', '>=', now());
+            }
+        }
+
         if ($request->filled('search')) {
             $query->where('judul', 'like', "%{$request->search}%");
         }

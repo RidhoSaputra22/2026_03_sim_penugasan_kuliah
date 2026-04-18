@@ -1,7 +1,7 @@
 {{-- Progress Overview + Priority Widget --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Overall Progress Ring --}}
-    <x-ui.card title="Progress Keseluruhan">
+    <x-ui.card title="Progress Keseluruhan" :href="route('statistik.index')">
         <div class="flex flex-col items-center py-2">
             <div class="radial-progress text-primary text-xl font-bold"
                  style="--value:{{ round($avgProgress) }}; --size:8rem; --thickness:0.6rem;"
@@ -37,7 +37,7 @@
     </x-ui.card>
 
     {{-- Prioritas Tugas --}}
-    <x-ui.card title="Tugas per Prioritas">
+    <x-ui.card title="Tugas per Prioritas" :href="route('statistik.index')">
         <div class="space-y-4 py-2">
             @php
                 $prioritasConfig = [
@@ -68,7 +68,7 @@
     </x-ui.card>
 
     {{-- Weekly Activity Chart --}}
-    <x-ui.card title="Aktivitas Mingguan">
+    <x-ui.card title="Aktivitas Mingguan" :href="route('statistik.index')">
         <div class="h-48">
             <canvas id="weeklyChart"></canvas>
         </div>

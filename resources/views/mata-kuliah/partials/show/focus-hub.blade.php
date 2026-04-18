@@ -4,9 +4,7 @@
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     <h3 class="text-base font-semibold sm:text-lg">Panel Fokus</h3>
-                    <p class="text-xs text-base-content/60 sm:text-sm">
-                        Semua alat kerja mode fokus diringkas ke dalam tab agar halaman tetap padat.
-                    </p>
+
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -38,9 +36,7 @@
                             <div class="flex items-center justify-between gap-3">
                                 <div>
                                     <h3 class="text-base font-semibold sm:text-lg">Quick Wizard</h3>
-                                    <p class="text-xs text-base-content/60 sm:text-sm">
-                                        Buat tugas baru lalu lanjut menambah checklist ke tugas aktif tanpa keluar dari mode fokus.
-                                    </p>
+
                                 </div>
 
                                 <x-ui.button type="ghost" size="sm" :isSubmit="false" class="hidden sm:inline-flex"

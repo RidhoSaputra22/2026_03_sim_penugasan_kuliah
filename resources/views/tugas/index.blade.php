@@ -227,6 +227,13 @@
             <x-slot:filters>
                 <x-ui.select class="min-w-[150px]" name="status" :searchable="false" placeholder="Semua Status" :options="App\Enums\Status::options()" :value="request('status')" size="sm"  />
 
+                <x-ui.select class="min-w-[180px]" name="deadline_state" :searchable="false" placeholder="Semua Deadline"
+                    :options="[
+                        'mendekat' => 'Deadline Mendekat',
+                        'terlambat' => 'Tugas Terlambat',
+                    ]"
+                    :value="request('deadline_state')" size="sm" />
+
                 <x-ui.select class="w-full sm:min-w-[300px]" name="mata_kuliah_id" :searchable="true"
                     placeholder="Semua Mata Kuliah" :options="$mataKuliah->pluck('nama', 'id')->toArray()" :value="request('mata_kuliah_id')" size="sm" />
             </x-slot:filters>

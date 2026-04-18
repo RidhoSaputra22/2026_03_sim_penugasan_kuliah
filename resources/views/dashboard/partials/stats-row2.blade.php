@@ -1,6 +1,7 @@
 {{-- Stats Cards Row 2 --}}
 <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <x-ui.stat title="Jadwal Hari Ini" :value="$jadwalHariIni->count()" description="mata kuliah">
+    <x-ui.stat title="Jadwal Hari Ini" :value="$jadwalHariIni->count()" description="mata kuliah"
+        :href="route('kalender.index')">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-info" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -10,7 +11,8 @@
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Mata Kuliah" :value="$totalMataKuliah" description="{{ $totalSks }} SKS total">
+    <x-ui.stat title="Mata Kuliah" :value="$totalMataKuliah" description="{{ $totalSks }} SKS total"
+        :href="route('mata-kuliah.index')">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-secondary" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -21,6 +23,7 @@
     </x-ui.stat>
 
     <x-ui.stat title="Todo Selesai" :value="$todosSelesai . '/' . $totalTodos"
+        :href="route('statistik.index')"
         description="{{ $totalTodos > 0 ? round(($todosSelesai / $totalTodos) * 100) : 0 }}% checklist">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24"
@@ -31,7 +34,8 @@
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Rata-rata Progress" :value="round($avgProgress) . '%'" description="progress keseluruhan">
+    <x-ui.stat title="Rata-rata Progress" :value="round($avgProgress) . '%'" description="progress keseluruhan"
+        :href="route('statistik.index')">
         <x-slot:icon>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-accent -ml-9" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">

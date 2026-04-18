@@ -17,39 +17,30 @@
 
 @php
     $hoverClass = $href
-        ? ' cursor-pointer transition-shadow duration-200 hover:shadow-2xl hover:-translate-y-0.5 active:scale-[0.99]'
+        ? ' cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
         : '';
 @endphp
 
-@if ($href)
-
-    <div {{ $attributes->merge(['class' => 'card bg-base-100 shadow-xl ' . $class . $hoverClass]) }}>
-        <a href="{{ $href }}">
-            <div class="card-body {{ $compact ? 'p-4' : '' }}">
-                @if ($title)
-                    <h2 class="card-title">{{ $title }}</h2>
-                @endif
-                {{ $slot }}
-                @if (isset($actions))
-                    <div class="card-actions justify-end mt-4">
-                        {{ $actions }}
-                    </div>
-                @endif
+<div
+    {{ $attributes->merge(['class' => 'card bg-base-100 shadow-xl ' . $class . $hoverClass]) }}
+    @if ($href)
+        role="link"
+        tabindex="0"
+        data-card-href="{{ $href }}"
+        aria-label="{{ $title ? 'Buka ' . $title : 'Buka card' }}"
+        onclick="if (!event.target.closest('a, button, input, select, textarea, summary, label, [role=button], [role=link]')) { window.location.href = this.dataset.cardHref; }"
+        onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !event.target.closest('a, button, input, select, textarea, summary, label, [role=button], [role=link]')) { event.preventDefault(); window.location.href = this.dataset.cardHref; }"
+    @endif
+>
+    <div class="card-body {{ $compact ? 'p-4' : '' }}">
+        @if ($title)
+            <h2 class="card-title">{{ $title }}</h2>
+        @endif
+        {{ $slot }}
+        @if (isset($actions))
+            <div class="card-actions justify-end mt-4">
+                {{ $actions }}
             </div>
-        </a>
+        @endif
     </div>
-@else
-    <div {{ $attributes->merge(['class' => 'card bg-base-100 shadow-xl ' . $class]) }}>
-        <div class="card-body {{ $compact ? 'p-4' : '' }}">
-            @if ($title)
-                <h2 class="card-title">{{ $title }}</h2>
-            @endif
-            {{ $slot }}
-            @if (isset($actions))
-                <div class="card-actions justify-end mt-4">
-                    {{ $actions }}
-                </div>
-            @endif
-        </div>
-    </div>
-@endif
+</div>

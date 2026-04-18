@@ -77,7 +77,8 @@
                 </div>
 
                 @if ($nextDeadlineTask)
-                    <div class="mt-3 rounded-md border border-warning/30 bg-warning/10 p-4">
+                    <a href="{{ $nextDeadlineTask['show_url'] }}"
+                        class="mt-3 block rounded-md border border-warning/30 bg-warning/10 p-4 transition hover:border-warning/50 hover:bg-warning/15">
                         <div class="text-xs font-semibold text-base-content sm:text-sm">
                             {{ $nextDeadlineTask['title'] }}
                         </div>
@@ -87,7 +88,7 @@
                         <div class="mt-2 inline-flex rounded-md bg-base-100 px-3 py-1 text-xs font-medium">
                             {{ $nextDeadlineTask['deadline_relative'] }}
                         </div>
-                    </div>
+                    </a>
                 @else
                     <div class="mt-3 rounded-md border border-success/30 bg-success/10 p-4">
                         <div class="text-xs font-semibold text-base-content sm:text-sm">Semua tugas utama aman</div>
@@ -137,31 +138,31 @@
 </x-ui.card>
 
 <div class="hidden grid-cols-2 gap-4 sm:grid md:grid-cols-3 xl:grid-cols-5">
-    <x-ui.stat title="Total Tugas" :value="$totalTugas" description="semua tugas mata kuliah">
+    <x-ui.stat title="Total Tugas" :value="$totalTugas" description="semua tugas mata kuliah" href="#task-board">
         <x-slot:icon>
             <x-heroicon-o-rectangle-stack class="h-8 w-8 text-primary" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Tugas Aktif" :value="$tugasAktif" description="masih perlu dikerjakan">
+    <x-ui.stat title="Tugas Aktif" :value="$tugasAktif" description="masih perlu dikerjakan" href="#task-board">
         <x-slot:icon>
             <x-heroicon-o-bolt class="h-8 w-8 text-warning" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Selesai" :value="$tugasSelesai" description="{{ $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0 }}% dari total tugas">
+    <x-ui.stat title="Selesai" :value="$tugasSelesai" description="{{ $totalTugas > 0 ? round(($tugasSelesai / $totalTugas) * 100) : 0 }}% dari total tugas" href="#task-board">
         <x-slot:icon>
             <x-heroicon-o-check-circle class="h-8 w-8 text-success" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Checklist" :value="$todoSelesai . '/' . $totalTodo" description="item checklist selesai">
+    <x-ui.stat title="Checklist" :value="$todoSelesai . '/' . $totalTodo" description="item checklist selesai" href="#task-detail-card">
         <x-slot:icon>
             <x-heroicon-o-list-bullet class="h-8 w-8 text-secondary" />
         </x-slot:icon>
     </x-ui.stat>
 
-    <x-ui.stat title="Deadline Dekat" :value="$tugasMendekat" description="3 hari ke depan">
+    <x-ui.stat title="Deadline Dekat" :value="$tugasMendekat" description="3 hari ke depan" href="#task-board">
         <x-slot:icon>
             <x-heroicon-o-calendar-days class="h-8 w-8 text-info" />
         </x-slot:icon>
