@@ -248,30 +248,36 @@
             'triggerLabel' => 'Buka aksi statistik',
             'triggerClass' => 'btn btn-circle btn-lg btn-accent shadow-xl',
             'mainActionClass' => 'fab-main-action btn btn-circle btn-lg btn-accent shadow-xl',
+            'panelTitle' => 'Pusat kontrol statistik',
+            'panelDescription' => 'Lompat ke bagian penting di halaman ini atau pindah ke modul lain tanpa kehilangan konteks.',
             'items' => [
                 [
-                    'label' => 'Dashboard',
-                    'href' => route('dashboard'),
+                    'label' => 'Ringkasan utama',
+                    'description' => 'Lihat kartu total tugas dan skor produktivitas.',
+                    'href' => route('statistik.index') . '#summary-stats',
                     'icon' => 'dashboard',
                     'buttonClass' => 'btn btn-circle btn-lg btn-primary shadow-lg',
                 ],
                 [
-                    'label' => 'Tugas',
-                    'href' => route('tugas.index'),
-                    'icon' => 'tugas',
-                    'buttonClass' => 'btn btn-circle btn-lg btn-warning shadow-lg',
+                    'label' => 'Grafik analisis',
+                    'description' => 'Buka distribusi prioritas, status, dan aktivitas mingguan.',
+                    'href' => route('statistik.index') . '#chart-overview',
+                    'icon' => 'statistik',
+                    'buttonClass' => 'btn btn-circle btn-lg btn-accent shadow-lg',
                 ],
                 [
-                    'label' => 'Kalender',
-                    'href' => route('kalender.index'),
+                    'label' => 'Deadline terdekat',
+                    'description' => 'Fokus ke daftar deadline 14 hari ke depan.',
+                    'href' => route('statistik.index') . '#deadline-timeline',
                     'icon' => 'kalender',
                     'buttonClass' => 'btn btn-circle btn-lg btn-info shadow-lg',
                 ],
                 [
-                    'label' => 'Jadwal Kuliah',
-                    'href' => route('mata-kuliah.index'),
-                    'icon' => 'mata-kuliah',
-                    'buttonClass' => 'btn btn-circle btn-lg btn-secondary shadow-lg',
+                    'label' => 'Progress tugas',
+                    'description' => 'Tinjau rasio todo dan progress keseluruhan.',
+                    'href' => route('statistik.index') . '#overall-progress',
+                    'icon' => 'tugas',
+                    'buttonClass' => 'btn btn-circle btn-lg btn-warning shadow-lg',
                 ],
             ],
         ];
@@ -279,9 +285,12 @@
 @endphp
 
 @if ($fab && !empty($fab['items']))
-    <x-ui.fab :variant="$fab['variant']" trigger-tag="button" :trigger-aria-label="$fab['triggerLabel']"
-        :main-action-aria-label="'Tutup menu aksi cepat'" :trigger-class="$fab['triggerClass']"
-        :main-action-class="$fab['mainActionClass']">
+    <div class="h-24 sm:h-28" aria-hidden="true"></div>
+
+    <x-ui.fab :trigger-aria-label="$fab['triggerLabel']" :main-action-aria-label="'Tutup menu aksi cepat'"
+        :trigger-class="$fab['triggerClass']" :main-action-class="$fab['mainActionClass']"
+        :panel-title="$fab['panelTitle'] ?? 'Aksi cepat'"
+        :panel-description="$fab['panelDescription'] ?? 'Pilih aksi yang paling relevan untuk halaman yang sedang Anda buka.'">
         <x-slot:trigger>
             <x-ui.fab.icon :name="$fab['triggerIcon']" class="h-6 w-6" />
         </x-slot:trigger>
@@ -293,7 +302,8 @@
 
 
         @foreach ($fab['items'] as $item)
-            <x-ui.fab.item :tooltip="$item['label']" :href="$item['href']" :button-class="$item['buttonClass']">
+            <x-ui.fab.item :tooltip="$item['label']" :description="$item['description'] ?? null"
+                :href="$item['href']" :button-class="$item['buttonClass']" :active="$item['active'] ?? false">
                 <x-ui.fab.icon :name="$item['icon']" class="h-5 w-5" />
             </x-ui.fab.item>
         @endforeach

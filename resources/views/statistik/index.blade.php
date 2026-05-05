@@ -15,7 +15,7 @@
     </x-slot:header>
 
     {{-- Summary Stats Row 1 --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div id="summary-stats" class="grid scroll-mt-28 grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-6">
         <x-ui.stat title="Total Tugas" :value="$totalTugas">
             <x-slot:icon>
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -102,7 +102,7 @@
     </div>
 
     {{-- Charts Row 2 --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div id="chart-overview" class="grid scroll-mt-28 grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
         {{-- Weekly Activity --}}
         <x-ui.card title="Aktivitas Mingguan (4 Minggu Terakhir)">
             <div class="h-72">
@@ -119,7 +119,7 @@
     </div>
 
     {{-- Progress per Mata Kuliah + Deadline Timeline --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div id="deadline-timeline" class="grid scroll-mt-28 grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
         {{-- Progress per Mata Kuliah --}}
         <x-ui.card title="Progress per Mata Kuliah">
             <div class="space-y-3 py-2">
@@ -169,7 +169,7 @@
     </div>
 
     {{-- Todo Completion + Overall Progress Gauge --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div id="overall-progress" class="grid scroll-mt-28 grid-cols-1 gap-6 lg:grid-cols-2">
         {{-- Todo Completion --}}
         <x-ui.card title="Todo Completion Rate">
             <div class="flex items-center gap-6 py-4">
