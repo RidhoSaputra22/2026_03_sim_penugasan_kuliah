@@ -76,7 +76,11 @@
                                         :class="statusClass(task.status)" x-text="task.status_label"></span>
                                     <span class="badge badge-sm" :class="priorityClass(task.priority)"
                                         x-text="priorityLabel(task.priority)"></span>
-
+                                    <span x-show="task.attachment_url" class="badge badge-ghost badge-sm gap-1"
+                                        x-cloak>
+                                        <x-heroicon-o-paper-clip class="h-3.5 w-3.5" />
+                                        <span x-text="task.attachment_is_image ? 'Foto' : 'Lampiran'"></span>
+                                    </span>
 
                                 </div>
 
@@ -148,6 +152,11 @@
                                 x-text="priorityLabel(selectedTask?.priority)"></span>
                             <span x-show="selectedTask?.attendance_label" class="badge badge-sm badge-info" x-cloak
                                 x-text="selectedTask?.attendance_label"></span>
+                            <span x-show="selectedTask?.attachment_url" class="badge badge-sm badge-ghost gap-1"
+                                x-cloak>
+                                <x-heroicon-o-paper-clip class="h-3.5 w-3.5" />
+                                <span x-text="selectedTask?.attachment_is_image ? 'Ada foto tugas' : 'Ada lampiran'"></span>
+                            </span>
                         </div>
 
                         <h3 class="mt-3 text-lg font-semibold text-base-content sm:text-xl"
@@ -223,6 +232,34 @@
                     x-text="selectedTask?.note"></pre>
             </div>
 
+            <div x-show="selectedTask?.attachment_url" class="rounded-md border border-base-300/70 bg-base-100 p-4"
+                x-cloak>
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">Foto / Lampiran</div>
+                        <div class="mt-1 text-sm font-semibold text-base-content"
+                            x-text="selectedTask?.attachment_name || 'Lampiran tugas'"></div>
+                        <p class="mt-1 text-xs text-base-content/60">
+                            Buka file asli untuk melihat detail penuh atau mengunduhnya.
+                        </p>
+                    </div>
+
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false"
+                        @click="goTo(selectedTask?.attachment_url, true)">
+                        <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                        Buka
+                    </x-ui.button>
+                </div>
+
+                <div x-show="selectedTask?.attachment_is_image"
+                    class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40"
+                    x-cloak>
+                    <img :src="selectedTask?.attachment_url"
+                        :alt="'Preview lampiran ' + (selectedTask?.attachment_name || selectedTask?.title || 'tugas')"
+                        class="max-h-80 w-full object-contain object-center">
+                </div>
+            </div>
+
             <div class="rounded-md border border-base-300/70 bg-base-100 p-4">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -265,15 +302,32 @@
                                             <span class="badge badge-xs"
                                                 :class="todo.status === doneStatus ? 'badge-success' : 'badge-warning'"
                                                 x-text="todo.status_label"></span>
+                                            <span x-show="todo.attachment_url" class="badge badge-xs badge-ghost gap-1"
+                                                x-cloak>
+                                                <x-heroicon-o-camera class="h-3.5 w-3.5" />
+                                                <span>Foto</span>
+                                            </span>
                                         </div>
                                         <p class="mt-1 text-xs leading-5 text-base-content/65 sm:text-sm sm:leading-6"
                                             x-text="todo.description || 'Tidak ada deskripsi tambahan.'"></p>
                                         <div x-show="todo.deadline_label"
                                             class="mt-2 text-xs uppercase tracking-wide text-base-content/45"
                                             x-text="'Deadline checklist: ' + todo.deadline_label"></div>
+                                        <div x-show="todo.attachment_url"
+                                            class="mt-3 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40"
+                                            x-cloak>
+                                            <img :src="todo.attachment_url"
+                                                :alt="'Preview foto checklist ' + (todo.attachment_name || todo.title || 'item')"
+                                                class="h-40 w-full object-contain object-center">
+                                        </div>
                                     </div>
 
                                     <div class="flex items-start gap-1">
+                                        <x-ui.button type="ghost" size="xs" :isSubmit="false"
+                                            x-show="todo.attachment_url" x-cloak
+                                            @click="goTo(todo.attachment_url, true)">
+                                            <x-heroicon-o-photo class="h-4 w-4" />
+                                        </x-ui.button>
                                         <x-ui.button type="ghost" size="xs" :isSubmit="false"
                                             @click="editTodoInWizard(todo)">
                                             <x-heroicon-o-pencil-square class="h-4 w-4" />

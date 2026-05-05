@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Status;
-use Illuminate\Http\Request;
 use App\Models\Todo;
 use App\Models\Tugas;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
@@ -51,8 +51,14 @@ class TodoController extends Controller
             'deskripsi' => 'nullable|string',
             'status' => ['nullable', Rule::enum(Status::class)->only(Status::taskCases())],
             'deadline' => 'nullable|date',
+            'file' => $this->todoAttachmentRules(),
         ]);
         $validated['status'] = $validated['status'] ?? Status::BELUM->value;
+
+        if ($request->hasFile('file')) {
+            $validated['file'] = $this->storeTodoAttachment($request, 'file');
+        }
+
         $todo = Todo::create($validated);
         return redirect()->route('tugas.show', $todo->tugas_id)->with('success', 'Todo berhasil ditambahkan!');
     }
@@ -91,8 +97,14 @@ class TodoController extends Controller
             'deskripsi' => 'nullable|string',
             'status' => ['nullable', Rule::enum(Status::class)->only(Status::taskCases())],
             'deadline' => 'nullable|date',
+            'file' => $this->todoAttachmentRules(),
         ]);
         $validated['status'] = $validated['status'] ?? Status::BELUM->value;
+
+        if ($request->hasFile('file')) {
+            $validated['file'] = $this->replaceTodoAttachment($request, 'file', $todo->file);
+        }
+
         $todo->update($validated);
         return redirect()->route('tugas.show', $todo->tugas_id)->with('success', 'Todo berhasil diupdate!');
     }
@@ -104,7 +116,29 @@ class TodoController extends Controller
     {
         $todo = Todo::findOrFail($id);
         $tugasId = $todo->tugas_id;
+        $todo->deleteAttachment();
         $todo->delete();
         return redirect()->route('tugas.show', $tugasId)->with('success', 'Todo berhasil dihapus!');
+    }
+
+    private function todoAttachmentRules(): array
+    {
+        return ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'];
+    }
+
+    private function storeTodoAttachment(Request $request, string $fieldName): string
+    {
+        return $request->file($fieldName)->store('todos', 'public');
+    }
+
+    private function replaceTodoAttachment(Request $request, string $fieldName, ?string $currentPath): string
+    {
+        $path = $this->storeTodoAttachment($request, $fieldName);
+
+        if ($currentPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($currentPath);
+        }
+
+        return $path;
     }
 }

@@ -58,8 +58,9 @@
     $todoSummary = $totalTodos > 0
         ? $completedTodos . ' dari ' . $totalTodos . ' todo selesai'
         : 'Belum ada todo checklist untuk tugas ini.';
-    $fileUrl = $tugas->file ? \Illuminate\Support\Facades\Storage::disk('public')->url($tugas->file) : null;
-    $fileName = $tugas->file ? basename($tugas->file) : null;
+    $fileUrl = $tugas->attachmentUrl();
+    $fileName = $tugas->attachmentName();
+    $isImageAttachment = $tugas->attachmentIsImage();
 @endphp
 
 <x-layouts.app title="Detail Tugas">
@@ -323,6 +324,13 @@
                                     </x-ui.button>
                                 @endif
                             </div>
+
+                            @if ($fileUrl && $isImageAttachment)
+                                <div class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40">
+                                    <img src="{{ $fileUrl }}" alt="Preview lampiran {{ $fileName }}"
+                                        class="max-h-96 w-full object-contain object-center">
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </x-ui.card>
@@ -349,6 +357,9 @@
                                 @foreach ($tugas->todos as $todo)
                                     @php
                                         $todoStatusValue = $todo->status instanceof Status ? $todo->status->value : (string) $todo->status;
+                                        $todoAttachmentUrl = $todo->attachmentUrl();
+                                        $todoAttachmentName = $todo->attachmentName();
+                                        $todoAttachmentIsImage = $todo->attachmentIsImage();
                                     @endphp
                                     <li class="rounded-md border p-4 transition duration-200"
                                         x-data="{
@@ -424,7 +435,22 @@
                                                         <x-heroicon-o-clipboard-document-check class="h-3.5 w-3.5" />
                                                         Checklist tugas
                                                     </span>
+                                                    @if ($todoAttachmentUrl)
+                                                        <a href="{{ $todoAttachmentUrl }}" target="_blank" rel="noreferrer"
+                                                            class="inline-flex items-center gap-1 rounded-full bg-base-200 px-3 py-1 hover:bg-base-300 transition">
+                                                            <x-heroicon-o-camera class="h-3.5 w-3.5" />
+                                                            {{ $todoAttachmentName ?? 'Foto checklist' }}
+                                                        </a>
+                                                    @endif
                                                 </div>
+
+                                                @if ($todoAttachmentUrl && $todoAttachmentIsImage)
+                                                    <div class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40">
+                                                        <img src="{{ $todoAttachmentUrl }}"
+                                                            alt="Preview foto checklist {{ $todoAttachmentName }}"
+                                                            class="max-h-72 w-full object-contain object-center">
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </li>

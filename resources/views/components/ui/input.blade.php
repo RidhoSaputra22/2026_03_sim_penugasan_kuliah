@@ -109,12 +109,12 @@
                     name="{{ $name }}"
                     placeholder="{{ $placeholder }}"
                     {{ $attributes->merge([
-                        'class' => 'file-input w-full ' . $fileSizeClass . ($error ? ' input-error' : '')
+                        'class' => 'file-input w-full ' . $fileSizeClass . ($error ? ' file-input-error' : '')
                     ]) }}
                     {{ $required ? 'required' : '' }}
                 />
                 @if($value)
-                    <a href="{{ Storage::url($value) }}" target="_blank" class="btn btn-outline">Lihat File</a>
+                    <a href="{{ Storage::disk('public')->url($value) }}" target="_blank" class="btn btn-outline">Lihat File</a>
                 @endif
             </div>
         @else

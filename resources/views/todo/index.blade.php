@@ -15,6 +15,7 @@
                     <th>Judul</th>
                     <th>Status</th>
                     <th>Deadline</th>
+                    <th>Foto</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -24,6 +25,7 @@
                     <td>{{ $todo->judul }}</td>
                     <td>{{ $statusLabel($todo->status) }}</td>
                     <td>{{ $todo->deadline }}</td>
+                    <td>{{ $todo->file ? 'Ada foto' : '-' }}</td>
                     <td>
                         <a href="{{ route('todo.show', $todo->id) }}" class="btn btn-info btn-sm">Lihat</a>
                         <a href="{{ route('todo.edit', $todo->id) }}" class="btn btn-warning btn-sm">Edit</a>

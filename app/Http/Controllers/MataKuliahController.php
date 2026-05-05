@@ -12,6 +12,7 @@ use App\Models\Tugas;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class MataKuliahController extends Controller
@@ -415,6 +416,7 @@ class MataKuliahController extends Controller
             'task_deadline' => ['required', 'date', 'after_or_equal:today'],
             'task_prioritas' => ['required', Rule::in(['rendah', 'sedang', 'tinggi'])],
             'task_catatan' => ['nullable', 'string'],
+            'task_file' => $this->taskAttachmentRules(),
         ]);
 
         $absensiId = null;
@@ -434,6 +436,9 @@ class MataKuliahController extends Controller
             'progress' => 0,
             'prioritas' => $validated['task_prioritas'],
             'catatan' => $validated['task_catatan'] ?? null,
+            'file' => $request->hasFile('task_file')
+                ? $this->storeTaskAttachment($request, 'task_file')
+                : null,
         ]);
 
         if ($request->expectsJson()) {
@@ -460,6 +465,7 @@ class MataKuliahController extends Controller
             'todo_judul' => ['required', 'string', 'max:255'],
             'todo_deskripsi' => ['nullable', 'string'],
             'todo_deadline' => ['nullable', 'date'],
+            'todo_file' => $this->todoAttachmentRules(),
         ]);
 
         $tugas = Tugas::query()
@@ -474,6 +480,9 @@ class MataKuliahController extends Controller
             'deadline' => !empty($validated['todo_deadline'])
                 ? Carbon::parse($validated['todo_deadline'])->endOfDay()
                 : $tugas->deadline,
+            'file' => $request->hasFile('todo_file')
+                ? $this->storeTodoAttachment($request, 'todo_file')
+                : null,
         ]);
 
         $this->syncTugasProgressFromTodos($tugas);
@@ -507,18 +516,25 @@ class MataKuliahController extends Controller
         $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
 
         $validated = $request->validateWithBag('focusTodoUpdate', [
-            'judul' => ['required', 'string', 'max:255'],
-            'deskripsi' => ['nullable', 'string'],
-            'deadline' => ['nullable', 'date'],
+            'todo_judul' => ['required', 'string', 'max:255'],
+            'todo_deskripsi' => ['nullable', 'string'],
+            'todo_deadline' => ['nullable', 'date'],
+            'todo_file' => $this->todoAttachmentRules(),
         ]);
 
-        $todo->update([
-            'judul' => $validated['judul'],
-            'deskripsi' => $validated['deskripsi'] ?? null,
-            'deadline' => !empty($validated['deadline'])
-                ? Carbon::parse($validated['deadline'])->endOfDay()
+        $payload = [
+            'judul' => $validated['todo_judul'],
+            'deskripsi' => $validated['todo_deskripsi'] ?? null,
+            'deadline' => !empty($validated['todo_deadline'])
+                ? Carbon::parse($validated['todo_deadline'])->endOfDay()
                 : $tugas->deadline,
-        ]);
+        ];
+
+        if ($request->hasFile('todo_file')) {
+            $payload['file'] = $this->replaceTodoAttachment($request, 'todo_file', $todo->file);
+        }
+
+        $todo->update($payload);
 
         $tugas->refresh();
         $this->loadFocusTaskRelations($tugas);
@@ -550,6 +566,7 @@ class MataKuliahController extends Controller
         $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
 
         $deletedId = $todo->id;
+        $todo->deleteAttachment();
         $todo->delete();
 
         $this->syncTugasProgressFromTodos($tugas);
@@ -578,20 +595,27 @@ class MataKuliahController extends Controller
         $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
 
         $validated = $request->validateWithBag('focusTaskUpdate', [
-            'judul' => ['required', 'string', 'max:255'],
-            'deskripsi' => ['nullable', 'string'],
-            'deadline' => ['required', 'date'],
-            'prioritas' => ['required', Rule::in(['rendah', 'sedang', 'tinggi'])],
-            'catatan' => ['nullable', 'string'],
+            'task_judul' => ['required', 'string', 'max:255'],
+            'task_deskripsi' => ['nullable', 'string'],
+            'task_deadline' => ['required', 'date'],
+            'task_prioritas' => ['required', Rule::in(['rendah', 'sedang', 'tinggi'])],
+            'task_catatan' => ['nullable', 'string'],
+            'task_file' => $this->taskAttachmentRules(),
         ]);
 
-        $tugas->update([
-            'judul' => $validated['judul'],
-            'deskripsi' => $validated['deskripsi'] ?? null,
-            'deadline' => Carbon::parse($validated['deadline'])->endOfDay(),
-            'prioritas' => $validated['prioritas'],
-            'catatan' => $validated['catatan'] ?? null,
-        ]);
+        $payload = [
+            'judul' => $validated['task_judul'],
+            'deskripsi' => $validated['task_deskripsi'] ?? null,
+            'deadline' => Carbon::parse($validated['task_deadline'])->endOfDay(),
+            'prioritas' => $validated['task_prioritas'],
+            'catatan' => $validated['task_catatan'] ?? null,
+        ];
+
+        if ($request->hasFile('task_file')) {
+            $payload['file'] = $this->replaceTaskAttachment($request, 'task_file', $tugas->file);
+        }
+
+        $tugas->update($payload);
 
         $this->loadFocusTaskRelations($tugas);
 
@@ -613,6 +637,10 @@ class MataKuliahController extends Controller
         $this->ensureTugasBelongsToCourse($mataKuliah, $tugas);
 
         $deletedId = $tugas->id;
+
+        $tugas->deleteAttachment();
+        $tugas->deleteTodoAttachments();
+
         $tugas->delete();
 
         $nextTaskId = Tugas::query()
@@ -670,6 +698,9 @@ class MataKuliahController extends Controller
             'status_label' => $this->statusLabel($status),
             'deadline_sort' => $deadline?->toDateString(),
             'deadline_label' => $deadline?->format('d M Y'),
+            'attachment_name' => $todo->attachmentName(),
+            'attachment_url' => $todo->attachmentUrl(),
+            'attachment_is_image' => $todo->attachmentIsImage(),
             'update_url' => route('todo.updateStatus', ['todo' => $todo->id]),
             'edit_url' => route('mata-kuliah.focus-todo.update', [$mataKuliah, $todo]),
             'delete_url' => route('mata-kuliah.focus-todo.destroy', [$mataKuliah, $todo]),
@@ -713,6 +744,9 @@ class MataKuliahController extends Controller
             'attendance_topic' => $item->absensi?->topik,
             'todo_count' => $todos->count(),
             'todo_completed_count' => $todoCompletedCount,
+            'attachment_name' => $item->attachmentName(),
+            'attachment_url' => $item->attachmentUrl(),
+            'attachment_is_image' => $item->attachmentIsImage(),
             'show_url' => route('tugas.show', $item),
             'edit_url' => route('tugas.edit', $item),
             'update_url' => route('mata-kuliah.focus-task.update', [$mataKuliah, $item]),
@@ -778,6 +812,48 @@ class MataKuliahController extends Controller
     private function resolveAbsensiForCourse(MataKuliah $mataKuliah, int $absensiId): Absensi
     {
         return $mataKuliah->absensis()->findOrFail($absensiId);
+    }
+
+    private function taskAttachmentRules(): array
+    {
+        return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'];
+    }
+
+    private function storeTaskAttachment(Request $request, string $fieldName): string
+    {
+        return $request->file($fieldName)->store('tugas', 'public');
+    }
+
+    private function replaceTaskAttachment(Request $request, string $fieldName, ?string $currentPath): string
+    {
+        $path = $this->storeTaskAttachment($request, $fieldName);
+
+        if ($currentPath) {
+            Storage::disk('public')->delete($currentPath);
+        }
+
+        return $path;
+    }
+
+    private function todoAttachmentRules(): array
+    {
+        return ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'];
+    }
+
+    private function storeTodoAttachment(Request $request, string $fieldName): string
+    {
+        return $request->file($fieldName)->store('todos', 'public');
+    }
+
+    private function replaceTodoAttachment(Request $request, string $fieldName, ?string $currentPath): string
+    {
+        $path = $this->storeTodoAttachment($request, $fieldName);
+
+        if ($currentPath) {
+            Storage::disk('public')->delete($currentPath);
+        }
+
+        return $path;
     }
 
     private function ensureAbsensiBelongsToCourse(MataKuliah $mataKuliah, Absensi $absensi): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Status;
 use App\Models\Absensi;
 use App\Models\MataKuliah;
+use App\Models\Todo;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -151,11 +152,13 @@ class TugasController extends Controller
             'status' => ['required', Rule::enum(Status::class)->only(Status::taskCases())],
             'progress' => 'required|integer|min:0|max:100',
             'prioritas' => 'required|in:rendah,sedang,tinggi',
-            'file' => 'nullable',
+            'file' => $this->taskAttachmentRules(),
             'catatan' => 'nullable|string',
             'todos' => 'nullable|array',
-            'todos.*.judul' => 'required_with:todos|string|max:255',
+            'todos.*.id' => 'nullable|integer',
+            'todos.*.judul' => 'nullable|string|max:255',
             'todos.*.deskripsi' => 'nullable|string',
+            'todos.*.file' => $this->todoAttachmentRules(),
         ]);
 
         $validated['absensi_id'] = $this->resolveTaskAbsensiId($request);
@@ -163,25 +166,13 @@ class TugasController extends Controller
         $validated['user_id'] = auth()->id();
 
         if ($request->hasFile('file')) {
-            $validated['file'] = $request->file('file')->store('tugas', 'public');
+            $validated['file'] = $this->storeTaskAttachment($request, 'file');
         }
 
         // Simpan tugas
         $tugas = Tugas::create($validated);
 
-        // Simpan todos jika ada
-        if (!empty($validated['todos'])) {
-            foreach ($validated['todos'] as $todo) {
-                if (!empty($todo['judul'])) {
-                    $tugas->todos()->create([
-                        'judul' => $todo['judul'],
-                        'deskripsi' => $todo['deskripsi'] ?? null,
-                        'status' => Status::BELUM->value,
-                        'deadline' => $tugas->deadline,
-                    ]);
-                }
-            }
-        }
+        $this->syncTaskTodosFromRequest($request, $tugas);
 
         return redirect()->route('tugas.index')
             ->with('success', 'Tugas berhasil ditambahkan.');
@@ -219,35 +210,24 @@ class TugasController extends Controller
 
             'progress' => 'required|integer|min:0|max:100',
             'prioritas' => 'required|in:rendah,sedang,tinggi',
-            'file' => 'nullable',
+            'file' => $this->taskAttachmentRules(),
             'catatan' => 'nullable|string',
             'todos' => 'nullable|array',
-            'todos.*.judul' => 'required_with:todos|string|max:255',
+            'todos.*.id' => 'nullable|integer',
+            'todos.*.judul' => 'nullable|string|max:255',
             'todos.*.deskripsi' => 'nullable|string',
+            'todos.*.file' => $this->todoAttachmentRules(),
         ]);
 
         $validated['absensi_id'] = $this->resolveTaskAbsensiId($request);
 
         if ($request->hasFile('file')) {
-            $validated['file'] = $request->file('file')->store('tugas', 'public');
+            $validated['file'] = $this->replaceTaskAttachment($request, 'file', $tugas->file);
         }
 
         $tugas->update($validated);
 
-        // Update todos: delete old, add new
-        $tugas->todos()->delete();
-        if (!empty($validated['todos'])) {
-            foreach ($validated['todos'] as $todo) {
-                if (!empty($todo['judul'])) {
-                    $tugas->todos()->create([
-                        'judul' => $todo['judul'],
-                        'deskripsi' => $todo['deskripsi'] ?? null,
-                        'status' => Status::BELUM->value,
-                        'deadline' => $tugas->deadline,
-                    ]);
-                }
-            }
-        }
+        $this->syncTaskTodosFromRequest($request, $tugas);
 
         return redirect()->route('tugas.show', $tugas)
             ->with('success', 'Tugas berhasil diupdate.');
@@ -256,6 +236,10 @@ class TugasController extends Controller
     public function destroy(Tugas $tugas)
     {
         $this->authorize($tugas);
+
+        $tugas->deleteAttachment();
+        $tugas->deleteTodoAttachments();
+
         $tugas->delete();
         return redirect()->route('tugas.index')
             ->with('success', 'Tugas berhasil dihapus.');
@@ -284,7 +268,7 @@ class TugasController extends Controller
     // Update status todo (checked/unchecked)
     public function updateTodoStatus(Request $request, $todoId)
     {
-        $todo = \App\Models\Todo::findOrFail($todoId);
+        $todo = Todo::findOrFail($todoId);
         // Pastikan hanya pemilik tugas yang bisa update
         if ($todo->tugas->user_id !== auth()->id()) {
             abort(403);
@@ -329,6 +313,97 @@ class TugasController extends Controller
         return $absensi->id;
     }
 
+    private function taskAttachmentRules(): array
+    {
+        return ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'];
+    }
+
+    private function storeTaskAttachment(Request $request, string $fieldName): string
+    {
+        return $request->file($fieldName)->store('tugas', 'public');
+    }
+
+    private function replaceTaskAttachment(Request $request, string $fieldName, ?string $currentPath): string
+    {
+        $path = $this->storeTaskAttachment($request, $fieldName);
+
+        if ($currentPath) {
+            Storage::disk('public')->delete($currentPath);
+        }
+
+        return $path;
+    }
+
+    private function todoAttachmentRules(): array
+    {
+        return ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif,bmp,avif', 'max:10240'];
+    }
+
+    private function syncTaskTodosFromRequest(Request $request, Tugas $tugas): void
+    {
+        $existingTodos = $tugas->todos()->get()->keyBy('id');
+        $keptTodoIds = [];
+
+        foreach ((array) $request->input('todos', []) as $index => $todoData) {
+            $title = trim((string) data_get($todoData, 'judul', ''));
+
+            if ($title === '') {
+                continue;
+            }
+
+            $todoId = data_get($todoData, 'id');
+            $description = trim((string) data_get($todoData, 'deskripsi', ''));
+            $payload = [
+                'judul' => $title,
+                'deskripsi' => $description !== '' ? $description : null,
+            ];
+
+            if ($todoId && $existingTodos->has((int) $todoId)) {
+                $todo = $existingTodos->get((int) $todoId);
+
+                if ($request->hasFile("todos.$index.file")) {
+                    $payload['file'] = $this->replaceTodoAttachment(
+                        $request->file("todos.$index.file"),
+                        $todo->file
+                    );
+                }
+
+                $todo->update($payload);
+                $keptTodoIds[] = $todo->id;
+                continue;
+            }
+
+            if ($request->hasFile("todos.$index.file")) {
+                $payload['file'] = $request->file("todos.$index.file")->store('todos', 'public');
+            }
+
+            $createdTodo = $tugas->todos()->create($payload + [
+                'status' => Status::BELUM->value,
+                'deadline' => $tugas->deadline,
+            ]);
+
+            $keptTodoIds[] = $createdTodo->id;
+        }
+
+        $existingTodos
+            ->reject(fn (Todo $todo) => in_array($todo->id, $keptTodoIds, true))
+            ->each(function (Todo $todo) {
+                $todo->deleteAttachment();
+                $todo->delete();
+            });
+    }
+
+    private function replaceTodoAttachment(\Illuminate\Http\UploadedFile $file, ?string $currentPath): string
+    {
+        $path = $file->store('todos', 'public');
+
+        if ($currentPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($currentPath);
+        }
+
+        return $path;
+    }
+
     public function bulkAction(Request $request)
     {
         $action = $request->input('action');
@@ -341,6 +416,11 @@ class TugasController extends Controller
         $tugasQuery = Tugas::whereIn('id', $ids)->where('user_id', auth()->id());
 
         if ($action === 'delete') {
+            $tugasQuery->with('todos:id,tugas_id,file')->get()->each(function (Tugas $tugas) {
+                $tugas->deleteAttachment();
+                $tugas->deleteTodoAttachments();
+            });
+
             $tugasQuery->delete();
             return redirect()->back()->with('success', 'Tugas berhasil dihapus.');
         }

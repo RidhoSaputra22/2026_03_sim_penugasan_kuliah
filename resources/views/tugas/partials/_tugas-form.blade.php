@@ -22,16 +22,24 @@
         'todos',
         isset($tugas) && $tugas->todos
             ? $tugas->todos->map(fn($todo) => [
+                'id' => $todo->id,
                 'judul' => $todo->judul,
                 'deskripsi' => $todo->deskripsi,
                 'status' => optional($todo->status)->value ?? (string) $todo->status,
                 'deadline' => $todo->deadline ? \Carbon\Carbon::parse($todo->deadline)->format('Y-m-d') : '',
+                'attachment_name' => $todo->attachmentName(),
+                'attachment_url' => $todo->attachmentUrl(),
+                'attachment_is_image' => $todo->attachmentIsImage(),
             ])->toArray()
             : [[
+                'id' => null,
                 'judul' => '',
                 'deskripsi' => '',
                 'status' => \App\Enums\Status::BELUM->value,
                 'deadline' => '',
+                'attachment_name' => null,
+                'attachment_url' => null,
+                'attachment_is_image' => false,
             ]]
     );
 
@@ -42,6 +50,10 @@
         'todos' => $todoItems,
         'openStatus' => \App\Enums\Status::BELUM->value,
     ];
+
+    $currentAttachmentUrl = isset($tugas) ? $tugas->attachmentUrl() : null;
+    $currentAttachmentName = isset($tugas) ? $tugas->attachmentName() : null;
+    $currentAttachmentIsImage = isset($tugas) ? $tugas->attachmentIsImage() : false;
 @endphp
 
 <form method="POST" action="{{ $formAction }}" class="space-y-4" enctype="multipart/form-data"
@@ -105,9 +117,40 @@
         <x-ui.select name="prioritas" label="Prioritas" :required="true" placeholder="Pilih prioritas"
             :options="['rendah' => 'Rendah', 'sedang' => 'Sedang', 'tinggi' => 'Tinggi']"
             :value="optional($tugas)->prioritas ?? old('prioritas', 'sedang')" />
-        <x-ui.input name="file" label="Upload File (PDF/IMG)" type="file"
-            accept="application/pdf,image/*" :value="optional($tugas)->file ?? ''" />
+        <x-ui.input name="file" label="Foto / Lampiran Tugas" type="file"
+            accept=".pdf,image/*" helpText="Unggah foto tugas, screenshot LMS, atau file PDF hingga 10 MB." />
     </div>
+
+    @if ($currentAttachmentUrl)
+        <div class="rounded-md border border-base-300/70 bg-base-100 p-4">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">
+                        Lampiran Saat Ini
+                    </div>
+                    <div class="mt-2 text-sm font-semibold text-base-content">
+                        {{ $currentAttachmentName }}
+                    </div>
+                    <p class="mt-1 text-xs text-base-content/60">
+                        Unggah file baru hanya jika ingin mengganti lampiran yang sekarang.
+                    </p>
+                </div>
+
+                <a href="{{ $currentAttachmentUrl }}" target="_blank" rel="noreferrer"
+                    class="btn btn-ghost btn-sm w-full sm:w-auto">
+                    <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                    Buka Lampiran
+                </a>
+            </div>
+
+            @if ($currentAttachmentIsImage)
+                <div class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40">
+                    <img src="{{ $currentAttachmentUrl }}" alt="Preview lampiran {{ $currentAttachmentName }}"
+                        class="h-56 w-full object-contain object-center">
+                </div>
+            @endif
+        </div>
+    @endif
 
     <x-ui.textarea name="catatan" label="Catatan" placeholder="Catatan tambahan (opsional)"
         :value="optional($tugas)->catatan ?? old('catatan') ?? ''" />
@@ -117,6 +160,8 @@
 
         <template x-for="(todo, idx) in todos" :key="idx">
             <div class="relative rounded-md border border-base-300/70 bg-base-100 p-4">
+                <input type="hidden" name="todo_id_dummy[]" x-bind:name="`todos[${idx}][id]`" x-model="todo.id">
+
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <x-ui.input name="todo_dummy[]" x-bind:name="`todos[${idx}][judul]`" label="Judul Todo"
                         x-model="todo.judul" placeholder="Judul todo" :required="false" />
@@ -124,6 +169,38 @@
 
                 <x-ui.textarea name="todo_dummy[]" x-bind:name="`todos[${idx}][deskripsi]`" label="Deskripsi Todo"
                     x-model="todo.deskripsi" placeholder="Deskripsi todo (opsional)" :rows="2" />
+
+                <x-ui.input name="todo_file_dummy[]" x-bind:name="`todos[${idx}][file]`" label="Foto Checklist"
+                    type="file" accept="image/*"
+                    helpText="Opsional. Gunakan untuk bukti pengerjaan atau referensi visual checklist." />
+
+                <div x-show="todo.attachment_url" class="mt-3 rounded-md border border-base-300/70 bg-base-200/40 p-3"
+                    x-cloak>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">
+                                Foto Saat Ini
+                            </div>
+                            <div class="mt-1 text-sm font-semibold text-base-content" x-text="todo.attachment_name || 'Foto checklist'"></div>
+                            <p class="mt-1 text-xs text-base-content/60">
+                                Unggah foto baru hanya jika ingin mengganti gambar checklist ini.
+                            </p>
+                        </div>
+
+                        <a x-bind:href="todo.attachment_url" target="_blank" rel="noreferrer"
+                            class="btn btn-ghost btn-xs w-full sm:w-auto">
+                            <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                            Buka Foto
+                        </a>
+                    </div>
+
+                    <div x-show="todo.attachment_is_image"
+                        class="mt-3 overflow-hidden rounded-md border border-base-300/70 bg-base-100" x-cloak>
+                        <img x-bind:src="todo.attachment_url"
+                            x-bind:alt="'Preview foto checklist ' + (todo.attachment_name || todo.judul || 'item')"
+                            class="h-40 w-full object-contain object-center">
+                    </div>
+                </div>
 
                 <div class="mt-2 flex items-center gap-2">
                     <x-ui.button type="ghost" size="sm" :isSubmit="false" class="ml-auto text-error"
@@ -228,10 +305,14 @@
 
                     makeEmptyTodo() {
                         return {
+                            id: null,
                             judul: '',
                             deskripsi: '',
                             status: this.openStatus,
                             deadline: '',
+                            attachment_name: null,
+                            attachment_url: null,
+                            attachment_is_image: false,
                         };
                     },
                 };

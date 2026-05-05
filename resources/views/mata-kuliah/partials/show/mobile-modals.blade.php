@@ -18,9 +18,11 @@
             <span x-text="quickNotice?.message"></span>
         </div>
 
-        <form method="POST" action="{{ route('mata-kuliah.focus-task', $mataKuliah) }}" class="space-y-4"
+        <form method="POST" action="{{ route('mata-kuliah.focus-task', $mataKuliah) }}"
+            enctype="multipart/form-data" class="space-y-4"
             x-ref="quickTaskFormMobile" @submit.prevent="submitQuickTask($event)">
             @csrf
+            <input type="hidden" name="MAX_FILE_SIZE" value="10485760">
 
             <div x-show="quickTaskMode === 'edit'" x-cloak
                 class="rounded-md border border-primary/25 bg-primary/[0.04] p-4">
@@ -85,6 +87,45 @@
                 <span class="label-text-alt text-error" x-text="quickTaskErrors.task_catatan"></span>
             </div>
 
+            <x-ui.input name="task_file" label="Foto Tugas" type="file"
+                accept=".pdf,image/*"
+                helpText="Tambahkan foto referensi, screenshot LMS, atau file PDF pendukung."
+                :error="$errors->quickTask->first('task_file')"
+                ::class="quickTaskErrors.task_file ? 'file-input-error' : ''" />
+            <div x-show="quickTaskErrors.task_file" class="label" x-cloak>
+                <span class="label-text-alt text-error" x-text="quickTaskErrors.task_file"></span>
+            </div>
+
+            <div x-show="quickTaskMode === 'edit' && selectedTask?.attachment_url"
+                class="rounded-md border border-base-300/70 bg-base-100 p-4" x-cloak>
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">
+                            Lampiran Saat Ini
+                        </div>
+                        <div class="mt-2 text-sm font-semibold text-base-content"
+                            x-text="selectedTask?.attachment_name || 'Lampiran tugas'"></div>
+                        <p class="mt-1 text-xs text-base-content/60">
+                            Biarkan kosong jika foto/lampiran tidak ingin diganti.
+                        </p>
+                    </div>
+
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false"
+                        @click="goTo(selectedTask?.attachment_url, true)">
+                        <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                        Buka Lampiran
+                    </x-ui.button>
+                </div>
+
+                <div x-show="selectedTask?.attachment_is_image"
+                    class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40"
+                    x-cloak>
+                    <img :src="selectedTask?.attachment_url"
+                        :alt="'Preview lampiran ' + (selectedTask?.attachment_name || selectedTask?.title || 'tugas')"
+                        class="h-48 w-full object-contain object-center">
+                </div>
+            </div>
+
             <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <x-ui.button type="ghost" size="sm" :isSubmit="false"
                     @click="closeDialog('mobile-task-modal'); $nextTick(() => openQuickTodoCreate(false))">
@@ -146,10 +187,12 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('mata-kuliah.focus-todo', $mataKuliah) }}" class="space-y-4"
+        <form method="POST" action="{{ route('mata-kuliah.focus-todo', $mataKuliah) }}"
+            enctype="multipart/form-data" class="space-y-4"
             x-show="tasks.length > 0" x-cloak x-ref="quickTodoFormMobile"
             @submit.prevent="submitQuickTodo($event)">
             @csrf
+            <input type="hidden" name="MAX_FILE_SIZE" value="10485760">
 
             <x-ui.input type="hidden" name="tugas_id" x-model="selectedTaskId" />
 
@@ -203,6 +246,45 @@
                 ::class="quickTodoErrors.todo_deadline ? 'input-error' : ''" />
             <div x-show="quickTodoErrors.todo_deadline" class="label" x-cloak>
                 <span class="label-text-alt text-error" x-text="quickTodoErrors.todo_deadline"></span>
+            </div>
+
+            <x-ui.input name="todo_file" label="Foto Checklist" type="file"
+                accept="image/*"
+                helpText="Tambahkan foto bukti atau referensi visual untuk checklist ini."
+                :error="$errors->quickTodo->first('todo_file')"
+                ::class="quickTodoErrors.todo_file ? 'file-input-error' : ''" />
+            <div x-show="quickTodoErrors.todo_file" class="label" x-cloak>
+                <span class="label-text-alt text-error" x-text="quickTodoErrors.todo_file"></span>
+            </div>
+
+            <div x-show="quickTodoMode === 'edit' && editingTodo?.attachment_url"
+                class="rounded-md border border-base-300/70 bg-base-100 p-4" x-cloak>
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <div class="text-[11px] uppercase tracking-[0.18em] text-base-content/45">
+                            Foto Saat Ini
+                        </div>
+                        <div class="mt-2 text-sm font-semibold text-base-content"
+                            x-text="editingTodo?.attachment_name || 'Foto checklist'"></div>
+                        <p class="mt-1 text-xs text-base-content/60">
+                            Biarkan kosong jika foto checklist tidak ingin diganti.
+                        </p>
+                    </div>
+
+                    <x-ui.button type="ghost" size="sm" :isSubmit="false"
+                        @click="goTo(editingTodo?.attachment_url, true)">
+                        <x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
+                        Buka Foto
+                    </x-ui.button>
+                </div>
+
+                <div x-show="editingTodo?.attachment_is_image"
+                    class="mt-4 overflow-hidden rounded-md border border-base-300/70 bg-base-200/40"
+                    x-cloak>
+                    <img :src="editingTodo?.attachment_url"
+                        :alt="'Preview foto checklist ' + (editingTodo?.attachment_name || editingTodo?.title || 'item')"
+                        class="h-48 w-full object-contain object-center">
+                </div>
             </div>
 
             <div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">

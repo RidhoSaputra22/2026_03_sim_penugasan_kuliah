@@ -461,9 +461,9 @@
                         }
 
                         const keyword = this.taskQuery.trim().toLowerCase();
-                        const todoText = (task.todos || []).map((todo) => [todo.title, todo.description].filter(Boolean).join(' '))
+                        const todoText = (task.todos || []).map((todo) => [todo.title, todo.description, todo.attachment_name].filter(Boolean).join(' '))
                             .join(' ');
-                        const haystack = [task.title, task.description, task.note, todoText]
+                        const haystack = [task.title, task.description, task.note, task.attachment_name, todoText]
                             .filter(Boolean)
                             .join(' ')
                             .toLowerCase();
@@ -895,7 +895,7 @@
                         const form = this.resolveQuickTodoFormEl();
                         if (!form) return;
 
-                        ['todo_judul', 'todo_deskripsi', 'todo_deadline'].forEach((name) => {
+                        ['todo_judul', 'todo_deskripsi', 'todo_deadline', 'todo_file'].forEach((name) => {
                             const field = form.querySelector(`[name="${name}"]`);
                             if (!field) return;
 
@@ -1057,12 +1057,6 @@
                         const isEditing = this.quickTaskMode === 'edit';
 
                         try {
-                            const toText = (value) => (value ?? '').toString();
-                            const trimmedOrNull = (value) => {
-                                const text = toText(value).trim();
-                                return text === '' ? null : text;
-                            };
-
                             let response;
 
                             if (isEditing) {
@@ -1074,23 +1068,16 @@
                                     return;
                                 }
 
-                                const payload = {
-                                    judul: toText(formData.get('task_judul')).trim(),
-                                    deskripsi: trimmedOrNull(formData.get('task_deskripsi')),
-                                    deadline: toText(formData.get('task_deadline')),
-                                    prioritas: toText(formData.get('task_prioritas')) || 'sedang',
-                                    catatan: trimmedOrNull(formData.get('task_catatan')),
-                                };
+                                formData.append('_method', 'PUT');
 
                                 response = await fetch(task.update_url, {
-                                    method: 'PUT',
+                                    method: 'POST',
                                     headers: {
-                                        'Content-Type': 'application/json',
                                         'Accept': 'application/json',
                                         'X-Requested-With': 'XMLHttpRequest',
                                         'X-CSRF-TOKEN': this.csrfToken(),
                                     },
-                                    body: JSON.stringify(payload),
+                                    body: formData,
                                 });
                             } else {
                                 response = await fetch(form.action, {
@@ -1108,18 +1095,7 @@
 
                             if (!response.ok) {
                                 const normalized = this.normalizeValidationErrors(data.errors || {});
-
-                                if (isEditing) {
-                                    this.quickTaskErrors = {
-                                        task_judul: normalized.judul,
-                                        task_deskripsi: normalized.deskripsi,
-                                        task_deadline: normalized.deadline,
-                                        task_prioritas: normalized.prioritas,
-                                        task_catatan: normalized.catatan,
-                                    };
-                                } else {
-                                    this.quickTaskErrors = normalized;
-                                }
+                                this.quickTaskErrors = normalized;
 
                                 const fallback = isEditing ? 'Gagal memperbarui tugas.' : 'Gagal menambahkan tugas.';
                                 this.setQuickNotice(data.message || fallback, 'error');
@@ -1169,12 +1145,6 @@
                         const isEditing = this.quickTodoMode === 'edit';
 
                         try {
-                            const toText = (value) => (value ?? '').toString();
-                            const trimmedOrNull = (value) => {
-                                const text = toText(value).trim();
-                                return text === '' ? null : text;
-                            };
-
                             let response;
 
                             if (isEditing) {
@@ -1186,21 +1156,16 @@
                                     return;
                                 }
 
-                                const payload = {
-                                    judul: toText(formData.get('todo_judul')).trim(),
-                                    deskripsi: trimmedOrNull(formData.get('todo_deskripsi')),
-                                    deadline: trimmedOrNull(formData.get('todo_deadline')),
-                                };
+                                formData.append('_method', 'PUT');
 
                                 response = await fetch(todo.edit_url, {
-                                    method: 'PUT',
+                                    method: 'POST',
                                     headers: {
-                                        'Content-Type': 'application/json',
                                         'Accept': 'application/json',
                                         'X-Requested-With': 'XMLHttpRequest',
                                         'X-CSRF-TOKEN': this.csrfToken(),
                                     },
-                                    body: JSON.stringify(payload),
+                                    body: formData,
                                 });
                             } else {
                                 response = await fetch(form.action, {
@@ -1218,16 +1183,7 @@
 
                             if (!response.ok) {
                                 const normalized = this.normalizeValidationErrors(data.errors || {});
-
-                                if (isEditing) {
-                                    this.quickTodoErrors = {
-                                        todo_judul: normalized.judul,
-                                        todo_deskripsi: normalized.deskripsi,
-                                        todo_deadline: normalized.deadline,
-                                    };
-                                } else {
-                                    this.quickTodoErrors = normalized;
-                                }
+                                this.quickTodoErrors = normalized;
 
                                 const fallback = isEditing
                                     ? 'Gagal memperbarui checklist.'

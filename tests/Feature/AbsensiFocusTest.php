@@ -8,6 +8,8 @@ use App\Models\MataKuliah;
 use App\Models\Tugas;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AbsensiFocusTest extends TestCase
@@ -110,6 +112,63 @@ class AbsensiFocusTest extends TestCase
         $this->assertSame($mataKuliah->id, $tugas->mata_kuliah_id);
         $this->assertSame($absensi->id, $tugas->absensi_id);
         $this->assertSame($user->id, $tugas->user_id);
+    }
+
+    public function test_user_can_upload_and_replace_focus_task_attachment(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+
+        $mataKuliah = MataKuliah::create([
+            'kode' => 'IF405',
+            'nama' => 'Analisis Sistem',
+            'dosen' => 'Dewi Kartika',
+            'ruangan' => 'D204',
+            'hari' => 'Jumat',
+            'jam_mulai' => '09:00',
+            'jam_selesai' => '10:40',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('mata-kuliah.focus-task', $mataKuliah), [
+            'task_judul' => 'Upload foto papan tulis',
+            'task_deskripsi' => 'Simpan dokumentasi kelas sebagai referensi tugas.',
+            'task_deadline' => now()->addDays(2)->toDateString(),
+            'task_prioritas' => 'sedang',
+            'task_catatan' => 'Pastikan foto masih terbaca jelas.',
+            'task_file' => UploadedFile::fake()->image('catatan-kelas-awal.jpg'),
+        ]);
+
+        $response->assertRedirect(route('mata-kuliah.show', $mataKuliah));
+
+        $tugas = Tugas::query()->firstOrFail();
+        $firstPath = $tugas->file;
+
+        $this->assertNotNull($firstPath);
+        Storage::disk('public')->assertExists($firstPath);
+
+        $updateResponse = $this->actingAs($user)->post(
+            route('mata-kuliah.focus-task.update', [$mataKuliah, $tugas]),
+            [
+                '_method' => 'PUT',
+                'task_judul' => 'Upload foto papan tulis revisi',
+                'task_deskripsi' => 'Dokumentasi terbaru setelah diskusi lanjutan.',
+                'task_deadline' => now()->addDays(4)->toDateString(),
+                'task_prioritas' => 'tinggi',
+                'task_catatan' => 'Gunakan foto revisi sebagai lampiran utama.',
+                'task_file' => UploadedFile::fake()->image('catatan-kelas-revisi.jpg'),
+            ]
+        );
+
+        $updateResponse->assertRedirect(route('mata-kuliah.show', $mataKuliah));
+
+        $tugas->refresh();
+
+        $this->assertNotNull($tugas->file);
+        $this->assertNotSame($firstPath, $tugas->file);
+        Storage::disk('public')->assertMissing($firstPath);
+        Storage::disk('public')->assertExists($tugas->file);
     }
 
     public function test_regular_task_form_rejects_attendance_from_other_course(): void
